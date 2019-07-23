@@ -70,15 +70,6 @@ public class MainActivity extends AppCompatActivity
                 startActivity(offerRideIntent);
             }
         });
-
-        final Intent profileIntent = new Intent(this, ProfileActivity.class);
-        Button profileButton = (Button) findViewById(R.id.offerRideButton);
-        profileButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Code here executes on main thread after user presses button
-                startActivity(profileIntent);
-            }
-        });
     }
 
     @Override
