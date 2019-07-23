@@ -128,7 +128,9 @@ public class MainActivity extends AppCompatActivity
             startActivity(offerRideIntent);
             return true;
         } else if (id == R.id.nav_slideshow) {
-
+            final Intent viewRidesIntent = new Intent(this, ViewRidesActivity.class);
+            startActivity(viewRidesIntent);
+            return true;
         } else if (id == R.id.nav_tools) {
             final Intent profileIntent = new Intent(this, ProfileActivity.class);
             startActivity(profileIntent);
