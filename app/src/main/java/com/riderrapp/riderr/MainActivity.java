@@ -8,6 +8,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import android.view.View;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -69,6 +70,39 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 // Code here executes on main thread after user presses button
                 startActivity(offerRideIntent);
+            }
+        });
+
+        CardView card_view = (CardView) findViewById(R.id.card_view); // creating a CardView and assigning a value.
+        card_view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // do whatever you want to do on click (to launch any fragment or activity you need to put intent here.)
+                //if(journey is not set then dont navigate anywhere)
+                //else if(journey is driver journey, navigate to driver journey activity with start navigation button)
+                //else if(journey is riderr journey, navigate to riderr journey activity  with showing route on map and times)
+                new AlertDialog.Builder(v.getContext()).setMessage("You have no Rides").show();
+                /*
+                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
+                dialog.setCancelable(false);
+                dialog.setTitle("Dialog on Android");
+                dialog.setMessage("Are you sure you want to delete this entry?" );
+                dialog.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        //Action for "Delete".
+                    }
+                })
+                        .setNegativeButton("Cancel ", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                //Action for "Cancel".
+                            }
+                        });
+
+                final AlertDialog alert = dialog.create();
+                alert.show();
+                */
             }
         });
     }

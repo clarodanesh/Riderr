@@ -17,8 +17,7 @@
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="1.0"
-        app:srcCompat="@color/metallicGold" />
+        app:layout_constraintVertical_bias="1.0" />
 
     <androidx.cardview.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/card_view"
@@ -33,7 +32,8 @@
         card_view:layout_constraintBottom_toTopOf="@+id/riderrMessage"
         card_view:layout_constraintEnd_toEndOf="parent"
         card_view:layout_constraintStart_toStartOf="parent"
-        card_view:layout_constraintTop_toTopOf="@+id/imageView2">
+        card_view:layout_constraintTop_toTopOf="@+id/imageView2"
+        card_view:cardBackgroundColor="@color/metallicGold">
 
         <TextView
             android:layout_marginStart="8dp"
