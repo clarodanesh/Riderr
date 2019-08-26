@@ -73,7 +73,16 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        CardView card_view = (CardView) findViewById(R.id.card_view); // creating a CardView and assigning a value.
+        Button viewRideButton = (Button) findViewById(R.id.viewRideButton);
+        viewRideButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Code here executes on main thread after user presses button
+                new AlertDialog.Builder(v.getContext()).setMessage("You have no Rides").show();
+            }
+        });
+
+        //TAKING THE CARD VIEW ON CLICK LISTENER OUT
+        /*CardView card_view = (CardView) findViewById(R.id.card_view); // creating a CardView and assigning a value.
         card_view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,7 +91,8 @@ public class MainActivity extends AppCompatActivity
                 //else if(journey is driver journey, navigate to driver journey activity with start navigation button)
                 //else if(journey is riderr journey, navigate to riderr journey activity  with showing route on map and times)
                 new AlertDialog.Builder(v.getContext()).setMessage("You have no Rides").show();
-                /*
+
+                //taken out here
                 AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
                 dialog.setCancelable(false);
                 dialog.setTitle("Dialog on Android");
@@ -102,9 +112,9 @@ public class MainActivity extends AppCompatActivity
 
                 final AlertDialog alert = dialog.create();
                 alert.show();
-                */
+                //taken out here
             }
-        });
+        });*/
     }
 
     @Override
