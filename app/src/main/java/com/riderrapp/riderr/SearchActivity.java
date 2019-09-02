@@ -33,12 +33,13 @@ import android.widget.TextView;
 
 import java.util.Calendar;
 
-public class SearchActivity extends AppCompatActivity implements
-        View.OnClickListener{
+public class SearchActivity extends AppCompatActivity implements View.OnClickListener{
 
-    Button btnDatePicker, btnTimePicker;
-    TextView txtDate, txtTime;
-    private int mYear, mMonth, mDay, mHour, mMinute;
+    //creating variables for buttons, textview and integers to use
+    Button pickDateBtn, pickTimeBtn;
+    TextView dateText, timeText;
+    private int theYear, theMonth, theDay, theHour, theMinute;
+    private String fullDate, fullTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,57 +50,66 @@ public class SearchActivity extends AppCompatActivity implements
 
         final Intent intent = new Intent(this, MainActivity.class);
 
-
+        //handle search ride button
         final Button searchRideBtn = (Button) findViewById(R.id.searchRideBtn);
         searchRideBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 // Code here executes on main thread after user presses button
-                startActivity(intent);
+                //startActivity(intent);
+
+                //here can onclick get the fulldate and time and onlclick send to server
+                //dateText.setText(fullDate);
             }
         });
 
-        btnDatePicker=(Button)findViewById(R.id.btn_date);
-        btnTimePicker=(Button)findViewById(R.id.btn_time);
-        txtDate=(TextView) findViewById(R.id.in_date);
-        txtTime=(TextView) findViewById(R.id.in_time);
+        //get the views and assign to the buttons and text view variables
+        pickDateBtn=(Button)findViewById(R.id.btn_date);
+        pickTimeBtn=(Button)findViewById(R.id.btn_time);
+        dateText=(TextView) findViewById(R.id.in_date);
+        timeText=(TextView) findViewById(R.id.in_time);
 
-        btnDatePicker.setOnClickListener(this);
-        btnTimePicker.setOnClickListener(this);
+        //set on click listeners for the buttons
+        pickDateBtn.setOnClickListener(this);
+        pickTimeBtn.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
 
-        if (v == btnDatePicker) {
+        //if the view is the pick date button then handle it here
+        if (v == pickDateBtn) {
 
-            // Get Current Date
-            final Calendar c = Calendar.getInstance();
-            mYear = c.get(Calendar.YEAR);
-            mMonth = c.get(Calendar.MONTH);
-            mDay = c.get(Calendar.DAY_OF_MONTH);
+            // need to get the year month and day of the date
+            final Calendar calendar = Calendar.getInstance();
+            theYear = calendar.get(Calendar.YEAR);
+            theMonth = calendar.get(Calendar.MONTH);
+            theDay = calendar.get(Calendar.DAY_OF_MONTH);
 
-
+            // handle date picker dialogue here by launching it
             DatePickerDialog datePickerDialog = new DatePickerDialog(this,
                     new DatePickerDialog.OnDateSetListener() {
 
                         @Override
-                        public void onDateSet(DatePicker view, int year,
-                                              int monthOfYear, int dayOfMonth) {
+                        public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
 
-                            txtDate.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
-
+                            //dateText.setText(dayOfMonth + "-" + (monthOfYear + 1) + "-" + year);
+                            fullDate = dayOfMonth + "/" + (monthOfYear + 1) + "/" + year;
+                            pickDateBtn.setText(fullDate);
+                            //dateText.setText(fullDate);
                         }
-                    }, mYear, mMonth, mDay);
+                    }, theYear, theMonth, theDay);
             datePickerDialog.show();
         }
-        if (v == btnTimePicker) {
 
-            // Get Current Time
-            final Calendar c = Calendar.getInstance();
-            mHour = c.get(Calendar.HOUR_OF_DAY);
-            mMinute = c.get(Calendar.MINUTE);
+        //if the view being clicked is the pick time button then handle it here
+        if (v == pickTimeBtn) {
 
-            // Launch Time Picker Dialog
+            // need to get the hour and minute of current time
+            final Calendar calendar = Calendar.getInstance();
+            theHour = calendar.get(Calendar.HOUR_OF_DAY);
+            theMinute = calendar.get(Calendar.MINUTE);
+
+            // handle timpicker dialogue by launching it
             TimePickerDialog timePickerDialog = new TimePickerDialog(this,
                     new TimePickerDialog.OnTimeSetListener() {
 
@@ -107,9 +117,11 @@ public class SearchActivity extends AppCompatActivity implements
                         public void onTimeSet(TimePicker view, int hourOfDay,
                                               int minute) {
 
-                            txtTime.setText(hourOfDay + ":" + minute);
+                            //timeText.setText(hourOfDay + ":" + minute);
+                            fullTime = hourOfDay + ":" + minute;
+                            pickTimeBtn.setText(fullTime);
                         }
-                    }, mHour, mMinute, false);
+                    }, theHour, theMinute, false);
             timePickerDialog.show();
         }
     }
