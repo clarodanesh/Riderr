@@ -6,4 +6,125 @@
     android:layout_height="match_parent"
     tools:context=".OfferRideActivity">
 
+    <TextView
+        android:id="@+id/or_destination_lbl"
+        android:layout_width="215dp"
+        android:layout_height="30dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="56dp"
+        android:layout_marginEnd="8dp"
+        android:text="Set a destination"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.127"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/offerRideBtn"
+        android:layout_width="351dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="72dp"
+        android:text="Offer Ride"
+        android:backgroundTint="@color/colorPrimary"
+        android:textColor="@color/californiaGold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/offerRideTxtBox"
+        android:layout_width="350dp"
+        android:layout_height="53dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:ems="10"
+        android:hint="Destination"
+        android:inputType="textPersonName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.488"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/or_destination_lbl" />
+
+    <TextView
+        android:id="@+id/offer_ride_date"
+        android:layout_width="215dp"
+        android:layout_height="30dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="64dp"
+        android:layout_marginEnd="8dp"
+        android:text="Set a date"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.122"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/offerRideTxtBox" />
+
+    <Button
+        android:id="@+id/btn_offer_ride_date"
+        android:layout_width="351dp"
+        android:layout_height="54dp"
+        android:layout_alignBottom="@+id/offer_ride_date"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="8dp"
+        android:layout_toEndOf="@+id/in_date"
+        android:layout_toRightOf="@+id/offer_ride_date"
+        android:backgroundTint="@color/californiaGold"
+        android:text="SELECT DATE"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.477"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/offer_ride_date" />
+
+    <TextView
+        android:id="@+id/offer_ride_time"
+        android:layout_width="212dp"
+        android:layout_height="30dp"
+        android:layout_below="@+id/offer_ride_date"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:text="Set a time"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/offerRideBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.12"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btn_offer_ride_date"
+        app:layout_constraintVertical_bias="0.215" />
+
+    <Button
+        android:id="@+id/btn_offer_ride_time"
+        android:layout_width="351dp"
+        android:layout_height="54dp"
+        android:layout_below="@+id/btn_offer_ride_date"
+        android:layout_alignStart="@+id/btn_offer_ride_date"
+        android:layout_alignLeft="@+id/btn_offer_ride_date"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:backgroundTint="@color/californiaGold"
+        android:text="SELECT TIME"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/offerRideBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/offer_ride_time"
+        app:layout_constraintVertical_bias="0.035" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
