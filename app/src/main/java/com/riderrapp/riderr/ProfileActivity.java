@@ -1,6 +1,7 @@
 package com.riderrapp.riderr;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -21,6 +22,7 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -85,6 +87,40 @@ public class ProfileActivity extends AppCompatActivity {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             System.out.println("user NOT null");
+            // Name, email address, and profile photo Url
+            String name = user.getDisplayName();
+            String email = user.getEmail();
+
+            // Check if user's email is verified
+            boolean emailVerified = user.isEmailVerified();
+
+            System.out.println(name);
+            System.out.println(email);
+            System.out.println(emailVerified);
+
+            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                    .setDisplayName("Riderr name test update")
+                    .build();
+
+            user.updateProfile(profileUpdates)
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                System.out.println("profile updated");
+                            }
+                        }
+                    });
+
+            /*user.sendEmailVerification()
+                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                        @Override
+                        public void onComplete(@NonNull Task<Void> task) {
+                            if (task.isSuccessful()) {
+                                System.out.println("EMAIL SENT");
+                            }
+                        }
+                    });*/
         } else {
             System.out.println("user IS null");
         }

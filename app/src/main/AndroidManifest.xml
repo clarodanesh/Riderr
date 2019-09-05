@@ -12,36 +12,38 @@
         android:roundIcon="@mipmap/ic_riderr_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".LoginActivity"></activity>
+        <activity android:name=".RegisterActivity" />
         <activity
             android:name=".ViewRidesActivity"
             android:label="View Rides"
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ProfileActivity"
             android:label="Profile"
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".OfferRideActivity"
             android:label="Offer a Ride"
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".SearchActivity"
             android:label="Find a Ride"
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:screenOrientation="portrait">
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
