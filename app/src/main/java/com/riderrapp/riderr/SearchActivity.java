@@ -48,7 +48,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
         ActionBar actionBar = getSupportActionBar();
         actionBar.setDisplayHomeAsUpEnabled(true);
 
-        final Intent intent = new Intent(this, MainActivity.class);
+        final Intent LoginIntent = new Intent(this, LoginActivity.class);
 
         //handle search ride button
         final Button searchRideBtn = (Button) findViewById(R.id.searchRideBtn);
@@ -59,6 +59,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
                 //here can onclick get the fulldate and time and onlclick send to server
                 //dateText.setText(fullDate);
+                startActivity(LoginIntent);
             }
         });
 
