@@ -48,6 +48,9 @@ public class RegisterActivity extends AppCompatActivity {
                 String email = (String) emailEdit.getText().toString();
                 String password = (String) passwordEdit.getText().toString();
 
+                email = email.replace(" ", "");
+                password = password.replace(" ", "");
+
                 register(email, password);
             }
         });
