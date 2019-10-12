@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ActionBar;
 import android.graphics.Color;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -91,26 +93,24 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     public void register(String e, String p){
-        mAuth.signInWithEmailAndPassword(e, p)
+        mAuth.createUserWithEmailAndPassword(e, p)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithEmail:success");
+                            //Log.d(TAG, "createUserWithEmail:success");
+                            System.out.println("task success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
-                            Toast.makeText(RegisterActivity.this, "Authentication SUCCESS.",
-                                    Toast.LENGTH_SHORT).show();
                         } else {
                             // If sign in fails, display a message to the user.
-                            //Log.w(TAG, "signInWithEmail:failure", task.getException());
+                            //Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            System.out.println("task fail");
                             Toast.makeText(RegisterActivity.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
-
-                        // ...
                     }
                 });
     }
@@ -118,40 +118,17 @@ public class RegisterActivity extends AppCompatActivity {
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             System.out.println("user NOT null");
-            // Name, email address, and profile photo Url
-            String name = user.getDisplayName();
-            String email = user.getEmail();
-
-            // Check if user's email is verified
-            boolean emailVerified = user.isEmailVerified();
-
-            System.out.println(name);
-            System.out.println(email);
-            System.out.println(emailVerified);
-
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName("Riderr name test update")
-                    .build();
-
-            user.updateProfile(profileUpdates)
+            user.sendEmailVerification()
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
                         public void onComplete(@NonNull Task<Void> task) {
                             if (task.isSuccessful()) {
-                                System.out.println("profile updated");
+                                //Log.d(TAG, "Email sent.");
+                                Toast.makeText(RegisterActivity.this, "Check email for verification",
+                                        Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
-
-            /*user.sendEmailVerification()
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                System.out.println("EMAIL SENT");
-                            }
-                        }
-                    });*/
         } else {
             System.out.println("user IS null");
         }

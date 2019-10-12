@@ -53,35 +53,21 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        String email = "riderrmail@gmail.com";
-        String password = "test@riderrappcom";
+        GetUser();
+    }
 
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                            Toast.makeText(ProfileActivity.this, "Authentication SUCCESS.",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            //Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(ProfileActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
-
-                        // ...
-                    }
-                });
-
-        //FirebaseUser currentUser = mAuth.getCurrentUser();
-        //updateUI(currentUser);
+    private void GetUser(){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            // User is signed in
+            Toast.makeText(ProfileActivity.this, "User is signed in.",
+                    Toast.LENGTH_SHORT).show();
+            updateUI(user);
+        } else {
+            // No user is signed in
+            Toast.makeText(ProfileActivity.this, "NO user is signed in.",
+                    Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void updateUI(FirebaseUser user) {

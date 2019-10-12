@@ -115,7 +115,9 @@ public class LoginActivity extends AppCompatActivity {
                             //Log.d(TAG, "signInWithEmail:success");
                             FirebaseUser user = mAuth.getCurrentUser();
                             updateUI(user);
-                            Toast.makeText(LoginActivity.this, "Authentication SUCCESS.",
+                            boolean ver = user.isEmailVerified();
+                            String checker = String.valueOf(ver);
+                            Toast.makeText(LoginActivity.this, checker,
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             // If sign in fails, display a message to the user.
@@ -157,16 +159,6 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         }
                     });
-
-            /*user.sendEmailVerification()
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                System.out.println("EMAIL SENT");
-                            }
-                        }
-                    });*/
         } else {
             System.out.println("user IS null");
         }
