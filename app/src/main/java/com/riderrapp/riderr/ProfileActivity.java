@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -23,6 +25,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -34,10 +38,14 @@ import android.view.Menu;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class ProfileActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
+    private static final String TAG = "ProfileActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +78,34 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
+    private void SaveProfileChanges(){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = fbuser.getUid();
+        Map<String, Object> user = new HashMap<>();
+        user.put("user-id", uid);
+        user.put("name", "Kratos Atreus");
+        user.put("car-make", "Toyota");
+        user.put("registration-no", "FF55 LMN");
+        user.put("seats-no", 4);
+
+        // Add a new document with a generated ID
+        db.collection("users").document(uid)
+                .set(user)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing document", e);
+                    }
+                });
+    }
+
     private void updateUI(FirebaseUser user) {
         if (user != null) {
             System.out.println("user NOT null");
@@ -97,16 +133,7 @@ public class ProfileActivity extends AppCompatActivity {
                             }
                         }
                     });
-
-            /*user.sendEmailVerification()
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                System.out.println("EMAIL SENT");
-                            }
-                        }
-                    });*/
+            SaveProfileChanges();
         } else {
             System.out.println("user IS null");
         }

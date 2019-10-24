@@ -40,6 +40,9 @@ public class RegisterActivity extends AppCompatActivity {
         int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);*/
         getWindow().getDecorView().setBackgroundColor(getColor(R.color.colorPrimaryDark));
+        if(Build.VERSION.SDK_INT >= 21) {
+            getWindow().setNavigationBarColor(getColor(R.color.colorPrimaryDark));
+        }
         mAuth = FirebaseAuth.getInstance();
         final EditText emailEdit =  (EditText) findViewById(R.id.emailTxtBoxRegister);
         final EditText passwordEdit =  (EditText) findViewById(R.id.passwordTextBoxRegister);
