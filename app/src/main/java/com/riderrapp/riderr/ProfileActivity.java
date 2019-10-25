@@ -47,6 +47,7 @@ public class ProfileActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private static final String TAG = "ProfileActivity";
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +57,24 @@ public class ProfileActivity extends AppCompatActivity {
 
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
+
+        final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
+        final Button saveProfileChangesBtn = (Button) findViewById(R.id.SaveProfileChangesBtn);
+
+        editProfileBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                editProfileBtn.setVisibility(View.GONE);
+                saveProfileChangesBtn.setVisibility(View.VISIBLE);
+            }
+        });
+
+        saveProfileChangesBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                saveProfileChangesBtn.setVisibility(View.GONE);
+                editProfileBtn.setVisibility(View.VISIBLE);
+                SaveProfileChanges();
+            }
+        });
     }
 
     @Override
@@ -84,7 +103,7 @@ public class ProfileActivity extends AppCompatActivity {
         String uid = fbuser.getUid();
         Map<String, Object> user = new HashMap<>();
         user.put("user-id", uid);
-        user.put("name", "Kratos Atreus");
+        user.put("name", "NRG Formal");
         user.put("car-make", "Toyota");
         user.put("registration-no", "FF55 LMN");
         user.put("seats-no", 4);
@@ -107,10 +126,12 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void updateUI(FirebaseUser user) {
+        final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
+
         if (user != null) {
             System.out.println("user NOT null");
             // Name, email address, and profile photo Url
-            String name = user.getDisplayName();
+            /*String name = user.getDisplayName();
             String email = user.getEmail();
 
             // Check if user's email is verified
@@ -132,10 +153,22 @@ public class ProfileActivity extends AppCompatActivity {
                                 System.out.println("profile updated");
                             }
                         }
-                    });
-            SaveProfileChanges();
+                    });*/
+            //SaveProfileChanges();
+            //here instead we want to call get user profile, as every time the profile loads then get the profile
+            boolean emailVerified = user.isEmailVerified();
+
+            if(emailVerified) {
+                editProfileBtn.setEnabled(true);
+            }
+            else{
+                editProfileBtn.setEnabled(false);
+                Toast.makeText(ProfileActivity.this, "You need to VERIFY your email before you can make changes to your profile.",
+                        Toast.LENGTH_SHORT).show();
+            }
         } else {
             System.out.println("user IS null");
+            editProfileBtn.setEnabled(false);
         }
     }
 
