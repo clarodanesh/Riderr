@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -36,6 +37,7 @@ import androidx.appcompat.app.ActionBar;
 
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.HashMap;
@@ -159,7 +161,40 @@ public class ProfileActivity extends AppCompatActivity {
             boolean emailVerified = user.isEmailVerified();
 
             if(emailVerified) {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                String uid = fbuser.getUid();
                 editProfileBtn.setEnabled(true);
+
+
+                DocumentReference docRef = db.collection("users").document(uid);
+                docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
+
+                                TextView carMakeLabel = (TextView)findViewById(R.id.CarMakeLabel);
+                                carMakeLabel.setText(document.getString("car-make"));
+
+                                TextView carRegLabel = (TextView)findViewById(R.id.CarRegLabel);
+                                carRegLabel.setText(document.getString("registration-no"));
+
+                                TextView carSeatsLabel = (TextView)findViewById(R.id.CarSeatsLabel);
+                                int seatsNo = document.getLong("seats-no").intValue();
+                                String seatsNoString = String.valueOf(seatsNo);
+                                carSeatsLabel.setText(seatsNoString);
+
+                            } else {
+                                Log.d(TAG, "No such document");
+                            }
+                        } else {
+                            Log.d(TAG, "get failed with ", task.getException());
+                        }
+                    }
+                });
             }
             else{
                 editProfileBtn.setEnabled(false);
