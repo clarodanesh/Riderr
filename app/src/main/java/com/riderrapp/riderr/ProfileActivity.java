@@ -61,22 +61,15 @@ public class ProfileActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
-        final Button saveProfileChangesBtn = (Button) findViewById(R.id.SaveProfileChangesBtn);
+        final Intent EditProfileIntent = new Intent(this, EditProfileActivity.class);
 
         editProfileBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                editProfileBtn.setVisibility(View.GONE);
-                saveProfileChangesBtn.setVisibility(View.VISIBLE);
+                startActivity(EditProfileIntent);
             }
         });
 
-        saveProfileChangesBtn.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                saveProfileChangesBtn.setVisibility(View.GONE);
-                editProfileBtn.setVisibility(View.VISIBLE);
-                SaveProfileChanges();
-            }
-        });
+
     }
 
     @Override
@@ -99,33 +92,7 @@ public class ProfileActivity extends AppCompatActivity {
         }
     }
 
-    private void SaveProfileChanges(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
-        Map<String, Object> user = new HashMap<>();
-        user.put("user-id", uid);
-        user.put("name", "NRG Formal");
-        user.put("car-make", "Toyota");
-        user.put("registration-no", "FF55 LMN");
-        user.put("seats-no", 4);
 
-        // Add a new document with a generated ID
-        db.collection("users").document(uid)
-                .set(user)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
-                    }
-                });
-    }
 
     private void updateUI(FirebaseUser user) {
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
@@ -166,7 +133,6 @@ public class ProfileActivity extends AppCompatActivity {
                 String uid = fbuser.getUid();
                 editProfileBtn.setEnabled(true);
 
-
                 DocumentReference docRef = db.collection("users").document(uid);
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
@@ -176,13 +142,19 @@ public class ProfileActivity extends AppCompatActivity {
                             if (document.exists()) {
                                 Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
 
+                                TextView fnameLabel = (TextView)findViewById(R.id.FirstNameLabel);
+                                TextView lnameLabel = (TextView)findViewById(R.id.LastNameLabel);
+                                TextView emailLabel = (TextView)findViewById(R.id.EmailLabel);
                                 TextView carMakeLabel = (TextView)findViewById(R.id.CarMakeLabel);
-                                carMakeLabel.setText(document.getString("car-make"));
-
                                 TextView carRegLabel = (TextView)findViewById(R.id.CarRegLabel);
+                                TextView carSeatsLabel = (TextView)findViewById(R.id.CarSeatsLabel);
+
+                                fnameLabel.setText(document.getString("firstname"));
+                                lnameLabel.setText(document.getString("lastname"));
+                                emailLabel.setText(document.getString("user-email"));
+                                carMakeLabel.setText(document.getString("car-make"));
                                 carRegLabel.setText(document.getString("registration-no"));
 
-                                TextView carSeatsLabel = (TextView)findViewById(R.id.CarSeatsLabel);
                                 int seatsNo = document.getLong("seats-no").intValue();
                                 String seatsNoString = String.valueOf(seatsNo);
                                 carSeatsLabel.setText(seatsNoString);
@@ -201,6 +173,7 @@ public class ProfileActivity extends AppCompatActivity {
                 Toast.makeText(ProfileActivity.this, "You need to VERIFY your email before you can make changes to your profile.",
                         Toast.LENGTH_SHORT).show();
             }
+
         } else {
             System.out.println("user IS null");
             editProfileBtn.setEnabled(false);

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ProfileActivity">
+    tools:context=".EditProfileActivity">
 
     <TextView
         android:id="@+id/AboutYouCaption"
@@ -31,65 +31,46 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/AboutYouCaption" />
 
-    <TextView
-        android:id="@+id/FirstNameLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="4dp"
-        android:text="First Name"
-        android:textSize="15sp"
+    <EditText
+        android:id="@+id/editFirstname"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="34dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="First Name"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/NameCaption" />
 
-
-    <TextView
-        android:id="@+id/LastNameLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="4dp"
-        android:text="Last Name"
-        android:textSize="15sp"
-        app:layout_constraintStart_toEndOf="@+id/FirstNameLabel"
+    <EditText
+        android:id="@+id/editLastname"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="8dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Last Name"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintStart_toEndOf="@+id/editFirstname"
         app:layout_constraintTop_toBottomOf="@+id/NameCaption" />
-
-    <TextView
-        android:id="@+id/EmailCaption"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="16dp"
-        android:text="Email"
-        android:textSize="15sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/FirstNameLabel" />
-
-    <TextView
-        android:id="@+id/EmailLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="4dp"
-        android:text="Email"
-        android:textSize="15sp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/EmailCaption" />
-
 
     <TextView
         android:id="@+id/YourCarCaption"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="88dp"
-        android:layout_marginEnd="8dp"
+        android:layout_marginStart="38dp"
+        android:layout_marginTop="84dp"
         android:text="Your Car"
         android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.101"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/EmailLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/editLastname" />
 
     <TextView
         android:id="@+id/CarMakeCaption"
@@ -103,14 +84,18 @@
         app:layout_constraintTop_toBottomOf="@+id/YourCarCaption" />
 
 
-    <TextView
-        android:id="@+id/CarMakeLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="4dp"
-        android:text="Car Make"
-        android:textSize="15sp"
+    <EditText
+        android:id="@+id/editCarMake"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="34dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Make"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CarMakeCaption" />
 
@@ -124,17 +109,21 @@
         android:text="Car Registration"
         android:textSize="15sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/CarMakeLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/editCarMake" />
 
 
-    <TextView
-        android:id="@+id/CarRegLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="4dp"
-        android:text="Car Reg"
-        android:textSize="15sp"
+    <EditText
+        android:id="@+id/editCarReg"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="34dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Make"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CarRegCaption" />
 
@@ -147,32 +136,24 @@
         android:text="Amount of Seats"
         android:textSize="15sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/CarRegLabel" />
+        app:layout_constraintTop_toBottomOf="@+id/editCarReg" />
 
-    <TextView
-        android:id="@+id/CarSeatsLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="38dp"
-        android:layout_marginTop="4dp"
-        android:text="Seat No"
-        android:textSize="15sp"
+    <EditText
+        android:id="@+id/editCarSeats"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="34dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Seats No"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CarSeatsCaption" />
 
-    <Button
-        android:id="@+id/EditProfileBtn"
-        android:layout_width="351dp"
-        android:layout_height="54dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="84dp"
-        android:backgroundTint="@color/colorPrimary"
-        android:text="EDIT PROFILE"
-        android:textColor="@color/californiaGold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+
 
     <Button
         android:id="@+id/SaveProfileChangesBtn"
@@ -187,6 +168,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:visibility="gone"/>
+        />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
