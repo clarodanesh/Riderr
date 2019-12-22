@@ -172,7 +172,9 @@ public class MainActivity extends AppCompatActivity
             startActivity(profileIntent);
             return true;
         } else if (id == R.id.nav_share) {
-
+            final Intent splashIntent = new Intent(this, SplashActivity.class);
+            startActivity(splashIntent);
+            return true;
         } else if (id == R.id.nav_send) {
 
         }
