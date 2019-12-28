@@ -70,6 +70,7 @@ public class LoginActivity extends AppCompatActivity {
                 //here can onclick get the fulldate and time and onlclick send to server
                 //dateText.setText(fullDate);
                 startActivity(RegisterIntent);
+                finish();
             }
         });
     }
@@ -162,6 +163,10 @@ public class LoginActivity extends AppCompatActivity {
                             }
                         }
                     });
+
+            final Intent mainIntent = new Intent(this, MainActivity.class);
+            startActivity(mainIntent);
+            finish();
         } else {
             System.out.println("user IS null");
         }

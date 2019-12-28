@@ -16,10 +16,9 @@
             android:name=".SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/app_name"
-            android:screenOrientation="portrait"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -66,13 +65,17 @@
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
+        <activity android:name=".FoundRidesActivity"
+            android:label="Found Rides"
+            android:launchMode="singleTask"
+            android:parentActivityName=".SearchActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

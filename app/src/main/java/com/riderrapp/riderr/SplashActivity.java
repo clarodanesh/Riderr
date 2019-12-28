@@ -49,7 +49,6 @@ public class SplashActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
 
-
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
@@ -64,7 +63,7 @@ public class SplashActivity extends AppCompatActivity {
         if(user != null){
             final Intent mainIntent = new Intent(this, MainActivity.class);
             startActivity(mainIntent);
-            mAuth.getInstance().signOut();
+            //mAuth.getInstance().signOut();
             finish();
         }
         else{

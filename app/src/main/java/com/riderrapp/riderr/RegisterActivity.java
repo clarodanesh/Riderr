@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ActionBar;
+import android.content.Intent;
 import android.graphics.Color;
 import android.nfc.Tag;
 import android.os.Build;
@@ -57,6 +58,21 @@ public class RegisterActivity extends AppCompatActivity {
                 password = password.replace(" ", "");
 
                 register(email, password);
+            }
+        });
+
+        final Intent LoginIntent = new Intent(this, LoginActivity.class);
+        //handle search ride button
+        final Button loginRegisterBtn = (Button) findViewById(R.id.loginBtnRegister);
+        loginRegisterBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                // Code here executes on main thread after user presses button
+                //startActivity(intent);
+
+                //here can onclick get the fulldate and time and onlclick send to server
+                //dateText.setText(fullDate);
+                startActivity(LoginIntent);
+                finish();
             }
         });
     }
