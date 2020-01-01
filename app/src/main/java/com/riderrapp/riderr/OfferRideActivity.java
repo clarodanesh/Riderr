@@ -30,6 +30,7 @@ import android.widget.TimePicker;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.Calendar;
 
@@ -39,7 +40,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
     Button pickDateBtn, pickTimeBtn;
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
-    private String fullDate, fullTime;
+    private String fullDate, fullTime, destination;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +55,17 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 // Code here executes on main thread after user presses button
                 //startActivity(intent);
 
-                //here can onclick get the fulldate and time and onlclick send to server
+                //here can onclick get the fulldate and time and onclick send to server
                 //dateText.setText(fullDate);
+                destination = "";
+                //send the data for the ride from here
+                if(IsDataFilled(fullDate, fullTime, destination)){
+                    StoreData();
+                }
+                else{
+                    Toast.makeText(OfferRideActivity.this, "Fill the entire form before trying to submit",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -65,9 +75,13 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         dateText=(TextView) findViewById(R.id.offer_ride_date);
         timeText=(TextView) findViewById(R.id.offer_ride_time);
 
+        fullDate = "";
+        fullTime = "";
+
         //set on click listeners for the buttons
         pickDateBtn.setOnClickListener(this);
         pickTimeBtn.setOnClickListener(this);
+
     }
 
     @Override
@@ -121,5 +135,22 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                     }, theHour, theMinute, false);
             timePickerDialog.show();
         }
+    }
+
+    private boolean IsDataFilled(String d, String t, String dest){
+        if(d == "" || d.isEmpty()){
+            return false;
+        }
+        if(t == "" || t.isEmpty()){
+            return false;
+        }
+        if(dest == "" || dest.isEmpty()){
+            return false;
+        }
+        return true;
+    }
+
+    private void StoreData(){
+
     }
 }
