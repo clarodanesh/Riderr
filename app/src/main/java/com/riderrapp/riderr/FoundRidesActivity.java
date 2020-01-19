@@ -21,7 +21,12 @@ import android.widget.Toast;
 public class FoundRidesActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private FoundRidesAdapter ridesAdapter;
-    public List<studentData> studentDataList = new ArrayList<>();
+    public List<rideData> rideDataList = new ArrayList<>();
+
+    public static final String SEARCH_PLACE = "searchTerm";
+    public static final String SEARCH_DATE = "searchDate";
+    public static final String SEARCH_TIME = "searchTime";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -29,7 +34,7 @@ public class FoundRidesActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.rides_recycler);
         String data = "Danesh";
-        ridesAdapter = new FoundRidesAdapter(studentDataList);
+        ridesAdapter = new FoundRidesAdapter(rideDataList);
         RecyclerView.LayoutManager manager = new GridLayoutManager(this, 1);
         recyclerView.setLayoutManager(manager);
         //recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
@@ -41,31 +46,35 @@ public class FoundRidesActivity extends AppCompatActivity {
                 //intent.putExtra();
                 //startActivity(intent);
 
-                Toast.makeText(FoundRidesActivity.this, studentDataList.get(position).name,
+                Toast.makeText(FoundRidesActivity.this, rideDataList.get(position).place,
                        Toast.LENGTH_SHORT).show();
             }
         });
-        StudentDataPrepare();
+        RideDataPrepare();
     }
 
-    private void StudentDataPrepare() {
-        studentData data = new studentData("sai", 25);
-        studentDataList.add(data);
-        data = new studentData("sai", 25);
-        studentDataList.add(data);
-        data = new studentData("raghu", 20);
-        studentDataList.add(data);
-        data = new studentData("raj", 28);
-        studentDataList.add(data);
-        data = new studentData("amar", 15);
-        studentDataList.add(data);
-        data = new studentData("bapu", 19);
-        studentDataList.add(data);
-        data = new studentData("chandra", 52);
-        studentDataList.add(data);
-        data = new studentData("deraj", 30);
-        studentDataList.add(data);
-        data = new studentData("eshanth", 28);
-        studentDataList.add(data);
+    private void RideDataPrepare() {
+        String searchPlace = (String)getIntent().getExtras().get(SEARCH_PLACE);
+        String searchDate = (String)getIntent().getExtras().get(SEARCH_DATE);
+        String searchTime = (String)getIntent().getExtras().get(SEARCH_TIME);
+
+        rideData data = new rideData(searchPlace, searchDate, searchTime, "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
+        data = new rideData("sai", "test", "test", "check");
+        rideDataList.add(data);
     }
 }

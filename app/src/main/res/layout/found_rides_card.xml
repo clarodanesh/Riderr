@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/card_view"
     android:layout_width="match_parent"
-    android:layout_height="100dp"
+    android:layout_height="250dp"
     android:layout_marginLeft="4dp"
     android:layout_marginRight="4dp"
     android:layout_marginTop="4dp"
@@ -22,24 +22,41 @@
             android:id="@+id/info_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            card_view:layout_constraintBottom_toTopOf="@+id/registerBtnLogin"
+            android:layout_marginStart="4dp"
+            android:textSize="20sp"
+            card_view:layout_constraintBottom_toTopOf="@+id/info_text2"
+            card_view:layout_constraintEnd_toEndOf="parent"
+            card_view:layout_constraintHorizontal_bias="0.0"
+            card_view:layout_constraintStart_toStartOf="parent"
             card_view:layout_constraintTop_toTopOf="parent"
-            card_view:layout_constraintVertical_bias="0.0"
-            tools:layout_editor_absoluteX="0dp" />
+            card_view:layout_constraintVertical_bias="0.313" />
 
         <TextView
             android:id="@+id/info_text2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="36dp"
+            android:textSize="20sp"
+            card_view:layout_constraintBottom_toTopOf="@+id/info_text3"
+            card_view:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/info_text3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginBottom="28dp"
+            android:textSize="20sp"
             card_view:layout_constraintBottom_toTopOf="@+id/registerBtnLogin"
-            tools:layout_editor_absoluteX="16dp" />
+            card_view:layout_constraintStart_toStartOf="parent" />
 
         <Button
             android:id="@+id/registerBtnLogin"
             android:layout_width="351dp"
             android:layout_height="54dp"
             android:backgroundTint="@color/colorPrimary"
-            android:text="REGISTER"
+            android:text="Join Ride"
             android:textColor="@color/californiaGold"
             card_view:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toEndOf="parent"

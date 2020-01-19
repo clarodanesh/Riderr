@@ -31,9 +31,9 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
         this.listener = listener;
     }
 
-    List<studentData> studentDataList;
-    public  FoundRidesAdapter(List<studentData> studentDataList){
-        this.studentDataList = studentDataList;
+    List<rideData> rideDataList;
+    public  FoundRidesAdapter(List<rideData> rideDataList){
+        this.rideDataList = rideDataList;
     }
 
     @NonNull
@@ -47,11 +47,12 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
     @Override
     public void onBindViewHolder(MyViewHolder viewHolder, final int i) {
         Button cview = viewHolder.b;
-        studentData data=studentDataList.get(i);
+        rideData data = rideDataList.get(i);
         Random rnd = new Random();
         int currentColor = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-        viewHolder.name.setText(data.name);
-        viewHolder.age.setText(String.valueOf(data.age));
+        viewHolder.place.setText("Place: " + data.place);
+        viewHolder.date.setText("Date: " + data.date);
+        viewHolder.time.setText("Time: " + data.time);
         cview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,10 +64,10 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
     }
     @Override
     public int getItemCount() {
-        return studentDataList.size();
+        return rideDataList.size();
     }
     class MyViewHolder extends RecyclerView.ViewHolder {
-        TextView name,age;
+        TextView place, date, time;
         LinearLayout parent;
         CardView cv;
         Button b;
@@ -75,8 +76,9 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
             b = itemView.findViewById(R.id.registerBtnLogin);
             cv = itemView.findViewById(R.id.card_view);
             parent = itemView.findViewById(R.id.parent);
-            name = itemView.findViewById(R.id.info_text);
-            age = itemView.findViewById(R.id.info_text2);
+            place = itemView.findViewById(R.id.info_text);
+            date = itemView.findViewById(R.id.info_text2);
+            time = itemView.findViewById(R.id.info_text3);
         }
     }
 }

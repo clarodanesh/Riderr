@@ -56,7 +56,10 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
             public void onClick(View v) {
                 // Code here executes on main thread after user presses button
                 //startActivity(intent);
-
+                EditText offerRideTxtBox = (EditText)findViewById(R.id.searchTxtBox);
+                FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_PLACE, offerRideTxtBox.getText().toString());
+                FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_DATE, fullDate);
+                FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_TIME, fullTime);
                 //here can onclick get the fulldate and time and onlclick send to server
                 //dateText.setText(fullDate);
                 startActivity(FoundRidesIntent);
