@@ -18,7 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import java.util.Random;
 
-class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHolder>{
+class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRidesViewHolder>{
 
     private String[] captions;
     private Listener listener;
@@ -38,14 +38,14 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
 
     @NonNull
     @Override
-    public MyViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+    public FoundRidesViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View itemView = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.found_rides_card, viewGroup, false);
-        return new MyViewHolder(itemView);
+        return new FoundRidesViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(MyViewHolder viewHolder, final int i) {
+    public void onBindViewHolder(FoundRidesViewHolder viewHolder, final int i) {
         Button cview = viewHolder.b;
         rideData data = rideDataList.get(i);
         Random rnd = new Random();
@@ -66,12 +66,12 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.MyViewHol
     public int getItemCount() {
         return rideDataList.size();
     }
-    class MyViewHolder extends RecyclerView.ViewHolder {
+    class FoundRidesViewHolder extends RecyclerView.ViewHolder {
         TextView place, date, time;
         LinearLayout parent;
         CardView cv;
         Button b;
-        public MyViewHolder(View itemView) {
+        public FoundRidesViewHolder(View itemView) {
             super(itemView);
             b = itemView.findViewById(R.id.registerBtnLogin);
             cv = itemView.findViewById(R.id.card_view);
