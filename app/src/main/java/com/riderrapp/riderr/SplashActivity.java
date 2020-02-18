@@ -60,7 +60,7 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void checkUserStatus(FirebaseUser user){
-        if(user != null){
+        if(user != null && user.isEmailVerified() == true){
             final Intent mainIntent = new Intent(this, MainActivity.class);
             startActivity(mainIntent);
             //mAuth.getInstance().signOut();

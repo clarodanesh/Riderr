@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -61,15 +62,15 @@ public class EditProfileActivity extends AppCompatActivity {
         final EditText firstNameEdit =  (EditText) findViewById(R.id.editFirstname);
         final EditText lastNameEdit =  (EditText) findViewById(R.id.editLastname);
 
-        if(fname == "not set" && lname == "not set"){
+        if(fname.equals("firstname") && lname.equals("lastname")){
             firstNameEdit.setEnabled(true);
             lastNameEdit.setEnabled(true);
         }
-        else if(fname == "not set"){
+        else if(fname.equals("firstname")){
             firstNameEdit.setEnabled(true);
             lastNameEdit.setEnabled(false);
         }
-        else if(lname == "not set"){
+        else if(lname.equals("lastname")){
             firstNameEdit.setEnabled(false);
             lastNameEdit.setEnabled(true);
         }
@@ -123,18 +124,45 @@ public class EditProfileActivity extends AppCompatActivity {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
         String uid = fbuser.getUid();
+        final EditText firstNameText =  (EditText) findViewById(R.id.editFirstname);
+        final EditText lastNameText =  (EditText) findViewById(R.id.editLastname);
+        final EditText carMakeText =  (EditText) findViewById(R.id.editCarMake);
+        final EditText carRegText =  (EditText) findViewById(R.id.editCarReg);
+        final EditText carSeatsText =  (EditText) findViewById(R.id.editCarSeats);
+
         Map<String, Object> user = new HashMap<>();
-        user.put("user-id", uid);
+        /*user.put("user-id", uid);
         user.put("car-make", "Toyota");
         user.put("registration-no", "FF55 LMN");
         user.put("seats-no", 4);
         user.put("user-email", "email@email.com");
         user.put("firstname", "Danesh");
-        user.put("lastname", "Iqbal");
+        user.put("lastname", "Iqbal");*/
+
+        if(!TextUtils.isEmpty(firstNameText.getText().toString())){
+            user.put("firstname", firstNameText.getText().toString());
+        }
+        if(!TextUtils.isEmpty(lastNameText.getText().toString())){
+            user.put("lastname", lastNameText.getText().toString());
+        }
+        if(!TextUtils.isEmpty(carMakeText.getText().toString())){
+            user.put("car-make", carMakeText.getText().toString());
+        }
+        if(!TextUtils.isEmpty(carRegText.getText().toString())){
+            user.put("registration-no", carRegText.getText().toString());
+        }
+        if(!TextUtils.isEmpty(carSeatsText.getText().toString())){
+            int n = Integer.parseInt(carSeatsText.getText().toString());
+            user.put("seats-no", n);
+        }
+
+        //check if name and lastname for the user are disabled
+        //user.put("firstname", firstNameText.getText().toString());
+        //user.put("lastname", lastNameText.getText().toString());
 
         // Add a new document with a generated ID
         db.collection("users").document(uid)
-                .set(user)
+                .update(user)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {

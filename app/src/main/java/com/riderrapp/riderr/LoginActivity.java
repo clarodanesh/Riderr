@@ -164,9 +164,14 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
 
-            final Intent mainIntent = new Intent(this, MainActivity.class);
-            startActivity(mainIntent);
-            finish();
+            if(emailVerified) {
+                final Intent mainIntent = new Intent(this, MainActivity.class);
+                startActivity(mainIntent);
+                finish();
+            }else {
+                Toast.makeText(LoginActivity.this, "Check your email for a verification",
+                        Toast.LENGTH_SHORT).show();
+            }
         } else {
             System.out.println("user IS null");
         }
