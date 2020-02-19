@@ -31,6 +31,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -82,8 +83,8 @@ public class FoundRidesActivity extends AppCompatActivity {
         String searchDate = (String)getIntent().getExtras().get(SEARCH_DATE);
         String searchTime = (String)getIntent().getExtras().get(SEARCH_TIME);
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
         String uid = fbuser.getUid();
 
         //retrieve the offeredBy data and the amount of seats in the car data
@@ -92,6 +93,7 @@ public class FoundRidesActivity extends AppCompatActivity {
                 .whereEqualTo("place", searchPlace)
                 .whereEqualTo("date", searchDate)
                 .whereEqualTo("time", searchTime)
+                .whereGreaterThan("vehicleCapacity", 0)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -111,15 +113,19 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     //intent.putExtra();
                                     //startActivity(intent);
 
-                                    Toast.makeText(FoundRidesActivity.this, rideDataList.get(position).place,
-                                            Toast.LENGTH_SHORT).show();
+                                    //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
+                                    DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideDataList.get(position).rideId);
+                                    selectedRideRef.update("passengers", FieldValue.arrayUnion(fbuser.getUid()));
+
+                                    Toast.makeText(FoundRidesActivity.this, "You have joined a ride which will take place on " + rideDataList.get(position).date + " at " + rideDataList.get(position).time,
+                                            Toast.LENGTH_LONG).show();
                                 }
                             });
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.get("place"));
                                 Log.d(TAG, document.getId() + " => " + document.get("date"));
                                 Log.d(TAG, document.getId() + " => " + document.get("time"));
-                                data = new rideData(document.get("place").toString(), document.get("date").toString(), document.get("time").toString(), "check");
+                                data = new rideData(document.get("place").toString(), document.get("date").toString(), document.get("time").toString(), document.get("offeredBy").toString(), document.getId());
                                 rideDataList.add(data);
                             }
                         } else {

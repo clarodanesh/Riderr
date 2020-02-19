@@ -59,6 +59,7 @@ import android.app.TimePickerDialog;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -325,6 +326,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         data.put("time", t);
         data.put("vehicleCapacity", vcap);
         data.put("placeName", pName);
+        data.put("passengers", Arrays.asList());
 
         db.collection("OfferedRides")
                 .add(data)
