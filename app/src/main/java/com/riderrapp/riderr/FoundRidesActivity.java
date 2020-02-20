@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +26,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -117,6 +120,24 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideDataList.get(position).rideId);
                                     selectedRideRef.update("passengers", FieldValue.arrayUnion(fbuser.getUid()));
                                     selectedRideRef.update("vehicleCapacity", FieldValue.increment(-1));
+
+                                    Map<String, Object> user = new HashMap<>();
+                                    user.put("p-ride", rideDataList.get(position).rideId);
+
+                                    db.collection("users").document(fbuser.getUid())
+                                            .update(user)
+                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                }
+                                            })
+                                            .addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    Log.w(TAG, "Error writing document", e);
+                                                }
+                                            });
 
                                     Toast.makeText(FoundRidesActivity.this, "You have joined a ride which will take place on " + rideDataList.get(position).date + " at " + rideDataList.get(position).time,
                                             Toast.LENGTH_LONG).show();

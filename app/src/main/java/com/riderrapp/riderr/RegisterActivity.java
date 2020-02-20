@@ -201,6 +201,8 @@ public class RegisterActivity extends AppCompatActivity {
         user.put("seats-no", 0);
         user.put("user-email", fbuser.getEmail());
         user.put("user-id", fbuser.getUid());
+        user.put("p-ride", null);
+        user.put("d-ride", null);
 
         db.collection("users").document(uid)
                 .set(user)
