@@ -116,17 +116,23 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
                                     DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideDataList.get(position).rideId);
                                     selectedRideRef.update("passengers", FieldValue.arrayUnion(fbuser.getUid()));
+                                    selectedRideRef.update("vehicleCapacity", FieldValue.increment(-1));
 
                                     Toast.makeText(FoundRidesActivity.this, "You have joined a ride which will take place on " + rideDataList.get(position).date + " at " + rideDataList.get(position).time,
                                             Toast.LENGTH_LONG).show();
+                                    finish();
                                 }
                             });
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.get("place"));
                                 Log.d(TAG, document.getId() + " => " + document.get("date"));
                                 Log.d(TAG, document.getId() + " => " + document.get("time"));
-                                data = new rideData(document.get("place").toString(), document.get("date").toString(), document.get("time").toString(), document.get("offeredBy").toString(), document.getId());
-                                rideDataList.add(data);
+                                if(document.getLong("vehicleCapacity").intValue() > 0) {
+                                    data = new rideData(document.get("place").toString(), document.get("date").toString(), document.get("time").toString(), document.get("offeredBy").toString(), document.getId());
+                                    rideDataList.add(data);
+                                }else{
+                                    Log.d(TAG, "Ride not added due to vcap");
+                                }
                             }
                         } else {
                             Log.d(TAG, "Error getting documents: ", task.getException());
