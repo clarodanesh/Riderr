@@ -26,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
 import com.mapbox.geojson.Feature;
@@ -333,7 +334,29 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                        String uid = fbuser.getUid();
                         Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("d-ride", documentReference.getId());
+
+                        db.collection("users").document(uid)
+                                .update(user)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w(TAG, "Error writing document", e);
+                                    }
+                                });
+
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
