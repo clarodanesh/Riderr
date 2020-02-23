@@ -154,6 +154,7 @@ public class MainActivity extends AppCompatActivity
         mainMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(@NonNull final MapboxMap mapboxMap) {
+                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
                 mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull final Style style) {
@@ -335,6 +336,7 @@ public class MainActivity extends AppCompatActivity
         mainMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(@NonNull final MapboxMap mapboxMap) {
+                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
                 mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull final Style style) {
