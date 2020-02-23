@@ -267,8 +267,6 @@ public class MainActivity extends AppCompatActivity
 
     private void SetRide(final Style style, final MapboxMap mapboxMap, String rideid){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
 
         DocumentReference docRef = db.collection("OfferedRides").document(rideid);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -282,7 +280,7 @@ public class MainActivity extends AppCompatActivity
                         lng = document.getLong("longitude");
 
 
-                        addAirplaneImageToStyle(style);
+                        AddAnnotationMarkerToStyle(style);
                         // create symbol manager
                         GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
                         symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
@@ -317,7 +315,7 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
-    private void addAirplaneImageToStyle(Style style) {
+    private void AddAnnotationMarkerToStyle(Style style) {
         style.addImage(ID_ICON_MARKER,
                 BitmapUtils.getBitmapFromDrawable(ContextCompat.getDrawable(this, R.drawable.ic_riderr_launcher_foreground)));
     }
