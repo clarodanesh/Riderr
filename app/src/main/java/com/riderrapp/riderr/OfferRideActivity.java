@@ -112,6 +112,9 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 //send the data for the ride from here
                 if(IsDataFilled(fullDate, fullTime, destination)){
                     StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
+                    Toast.makeText(OfferRideActivity.this, "Your ride is now active",
+                            Toast.LENGTH_LONG).show();
+                    finish();
                 }
                 else{
                     Toast.makeText(OfferRideActivity.this, "Fill the entire form before trying to submit",
