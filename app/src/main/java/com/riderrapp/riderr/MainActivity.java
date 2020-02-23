@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity
     private SymbolManager symbolManager;
     private Symbol symbol;
     private static final String ID_ICON_MARKER = "marker";
-    private long lat = 0, lng = 0;
+    private double lat = 0, lng = 0;
     private String pride = "", dride = "";
 
     @Override
@@ -275,17 +275,18 @@ public class MainActivity extends AppCompatActivity
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
-                        lat = document.getLong("latitude");
+                        lat = document.getDouble("latitude");
                         //dride = document.getLong("longitude");
-                        lng = document.getLong("longitude");
+                        lng = document.getDouble("longitude");
 
 
                         AddAnnotationMarkerToStyle(style);
                         // create symbol manager
                         GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
                         symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
+                        symbolManager.deleteAll();
 
-
+                        symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
                         // set non data driven properties
                         symbolManager.setIconAllowOverlap(true);
                         symbolManager.setTextAllowOverlap(true);
@@ -306,7 +307,7 @@ public class MainActivity extends AppCompatActivity
                                         .zoom(8)
                                         .build()), 4000);
                     } else {
-                        Log.d(TAG, "No such document");
+                        Log.d(TAG, "No such document set ride");
                     }
                 } else {
                     Log.d(TAG, "get failed with ", task.getException());
@@ -330,6 +331,49 @@ public class MainActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         mainMapView.onResume();
+
+        mainMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
+                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                    @Override
+                    public void onStyleLoaded(@NonNull final Style style) {
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                        String uid = fbuser.getUid();
+
+                        DocumentReference docRef = db.collection("users").document(uid);
+                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    DocumentSnapshot document = task.getResult();
+                                    if (document.exists()) {
+                                        pride = document.getString("p-ride");
+                                        //dride = document.getLong("longitude");
+                                        dride = document.getString("d-ride");
+
+                                        if(dride != null) {
+                                            SetRide(style, mapboxMap, dride);
+                                        }else if(pride != null){
+                                            SetRide(style, mapboxMap, pride);
+                                        }else{
+
+                                        }
+
+
+                                    } else {
+                                        Log.d(TAG, "No such document on resume");
+                                    }
+                                } else {
+                                    Log.d(TAG, "get failed with ", task.getException());
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+        });
     }
 
     @Override
