@@ -22,18 +22,17 @@
 
         <TextView
             android:id="@+id/mainCardText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="46dp"
             android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:layout_marginEnd="8dp"
             android:gravity="center"
             android:text="Your Ride"
             android:textSize="25sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent" />
 
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/mapView"
@@ -50,6 +49,25 @@
             mapbox:mapbox_cameraTargetLat="40.73581"
             mapbox:mapbox_cameraTargetLng="-73.99155"
             mapbox:mapbox_cameraZoom="11" />
+
+        <Button
+            android:id="@+id/startNavButton"
+            android:layout_width="match_parent"
+            android:layout_gravity="bottom"
+            android:layout_height="54dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/colorPrimary"
+            android:text="Start Navigation"
+            android:textColor="@color/californiaGold"
+            app:layout_constraintBottom_toTopOf="@+id/searchButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/riderrMessage"
+            app:layout_constraintVertical_bias="1.0" />
+
 
     </androidx.cardview.widget.CardView>
 

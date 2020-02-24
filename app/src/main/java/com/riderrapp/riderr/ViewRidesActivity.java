@@ -24,10 +24,20 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.mapbox.android.core.permissions.PermissionsListener;
+import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.models.DirectionsResponse;
+import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.geometry.LatLng;
+import com.mapbox.mapboxsdk.location.LocationComponent;
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
+import com.mapbox.mapboxsdk.location.LocationComponentOptions;
+import com.mapbox.mapboxsdk.location.modes.CameraMode;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
@@ -35,8 +45,14 @@ import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
 import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 import androidx.drawerlayout.widget.DrawerLayout;
 
@@ -46,215 +62,234 @@ import androidx.appcompat.app.ActionBar;
 
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.Toast;
 
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 import timber.log.Timber;
 
+import static android.graphics.BitmapFactory.decodeResource;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
-public class ViewRidesActivity extends AppCompatActivity {
 
+public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
+    // variables for adding location layer
+    private MapView mapView;
+    private MapboxMap mapboxMap;
+    // variables for adding location layer
+    private PermissionsManager permissionsManager;
+    private LocationComponent locationComponent;
+    // variables for calculating and drawing a route
+    private DirectionsRoute currentRoute;
     private static final String TAG = "ViewRidesActivity";
+    private NavigationMapRoute navigationMapRoute;
+    // variables needed to initialize navigation
+    private Button button;
 
-    private MapView mainMapView;
-    private SymbolManager symbolManager;
-    private Symbol symbol;
-    private static final String ID_ICON_MARKER = "marker";
-    private double lat = 0, lng = 0;
-    private String pride = "", dride = "";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Mapbox.getInstance(this, "pk.eyJ1IjoiZGlxYmFsIiwiYSI6ImNqdzZtMzQ3czAxZXYzem83eTY4NWpua2kifQ.clrFPQXs0E70rz9R4H292w");
+        Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_view_rides);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        mainMapView = findViewById(R.id.mapView);
-        mainMapView.onCreate(savedInstanceState);
-        mainMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
-                    @Override
-                    public void onStyleLoaded(@NonNull final Style style) {
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                        String uid = fbuser.getUid();
-
-                        DocumentReference docRef = db.collection("users").document(uid);
-                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        pride = document.getString("p-ride");
-                                        //dride = document.getLong("longitude");
-                                        dride = document.getString("d-ride");
-
-                                        if(dride != null) {
-                                            SetRide(style, mapboxMap, dride);
-                                        }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride);
-                                        }else{
-
-                                        }
-
-
-                                    } else {
-                                        Log.d(TAG, "No such document");
-                                    }
-                                } else {
-                                    Log.d(TAG, "get failed with ", task.getException());
-                                }
-                            }
-                        });
-                    }
-                });
-            }
-        });
+        mapView = findViewById(R.id.mapView);
+        mapView.onCreate(savedInstanceState);
+        mapView.getMapAsync(this);
     }
 
-    private void SetRide(final Style style, final MapboxMap mapboxMap, String rideid){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    @Override
+    public void onMapReady(@NonNull final MapboxMap mapboxMap) {
+        this.mapboxMap = mapboxMap;
+        mapboxMap.setStyle(getString(R.string.navigation_guidance_day), new Style.OnStyleLoaded() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        lat = document.getDouble("latitude");
-                        //dride = document.getLong("longitude");
-                        lng = document.getDouble("longitude");
+            public void onStyleLoaded(@NonNull Style style) {
+                enableLocationComponent(style);
 
+                addDestinationIconSymbolLayer(style);
 
-                        AddAnnotationMarkerToStyle(style);
-                        // create symbol manager
-                        GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
-                        symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
-                        symbolManager.deleteAll();
-
-                        symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
-                        // set non data driven properties
-                        symbolManager.setIconAllowOverlap(true);
-                        symbolManager.setTextAllowOverlap(true);
-
-                        // create a symbol
-                        SymbolOptions symbolOptions = new SymbolOptions()
-                                .withLatLng(new LatLng(lat, lng))
-                                .withIconImage(ID_ICON_MARKER)
-                                .withIconSize(1f)
-                                .withSymbolSortKey(10.0f);
-                        //.withDraggable(true);
-                        symbol = symbolManager.create(symbolOptions);
-                        Timber.e(symbol.toString());
-
-                        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                new CameraPosition.Builder()
-                                        .target(new LatLng(lat, lng))
-                                        .zoom(8)
-                                        .build()), 4000);
-                    } else {
-                        Log.d(TAG, "No such document set ride");
+                mapboxMap.addOnMapClickListener(ViewRidesActivity.this);
+                button = findViewById(R.id.startNavButton);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean simulateRoute = true;
+                        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                                .directionsRoute(currentRoute)
+                                .shouldSimulateRoute(simulateRoute)
+                                .build();
+// Call this method with Context from within an Activity
+                        NavigationLauncher.startNavigation(ViewRidesActivity.this, options);
                     }
-                } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                });
+
+                Point destinationPoint = Point.fromLngLat(0.1278, 51.5074);
+                Point originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
+                        locationComponent.getLastKnownLocation().getLatitude());
+
+                GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
+                if (source != null) {
+                    source.setGeoJson(Feature.fromGeometry(destinationPoint));
                 }
+
+                getRoute(originPoint, destinationPoint);
+                button.setEnabled(true);
+                button.setBackgroundResource(R.color.design_default_color_primary_dark);
             }
         });
     }
 
-    private void AddAnnotationMarkerToStyle(Style style) {
-        style.addImage(ID_ICON_MARKER,
-                BitmapUtils.getBitmapFromDrawable(ContextCompat.getDrawable(this, R.drawable.ic_riderr_launcher_foreground)));
+    private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
+        loadedMapStyle.addImage("destination-icon-id",
+                decodeResource(this.getResources(), R.drawable.mapbox_marker_icon_default));
+        GeoJsonSource geoJsonSource = new GeoJsonSource("destination-source-id");
+        loadedMapStyle.addSource(geoJsonSource);
+        SymbolLayer destinationSymbolLayer = new SymbolLayer("destination-symbol-layer-id", "destination-source-id");
+        destinationSymbolLayer.withProperties(
+                iconImage("destination-icon-id"),
+                iconAllowOverlap(true),
+                iconIgnorePlacement(true)
+        );
+        loadedMapStyle.addLayer(destinationSymbolLayer);
     }
 
+    @SuppressWarnings( {"MissingPermission"})
     @Override
-    public void onStart() {
-        super.onStart();
-        mainMapView.onStart();
+    public boolean onMapClick(@NonNull LatLng point) {
+
+        /*Point destinationPoint = Point.fromLngLat(point.getLongitude(), point.getLatitude());
+        Point originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
+                locationComponent.getLastKnownLocation().getLatitude());
+
+        GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
+        if (source != null) {
+            source.setGeoJson(Feature.fromGeometry(destinationPoint));
+        }
+
+        getRoute(originPoint, destinationPoint);
+        button.setEnabled(true);
+        button.setBackgroundResource(R.color.design_default_color_primary_dark);*/
+        return true;
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        mainMapView.onResume();
-
-        mainMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+    private void getRoute(Point origin, Point destination) {
+        NavigationRoute.builder(this)
+                .accessToken(Mapbox.getAccessToken())
+                .origin(origin)
+                .destination(destination)
+                .build()
+                .getRoute(new Callback<DirectionsResponse>() {
                     @Override
-                    public void onStyleLoaded(@NonNull final Style style) {
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                        String uid = fbuser.getUid();
+                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+// You can get the generic HTTP info about the response
+                        Log.d(TAG, "Response code: " + response.code());
+                        if (response.body() == null) {
+                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
+                            return;
+                        } else if (response.body().routes().size() < 1) {
+                            Log.e(TAG, "No routes found");
+                            return;
+                        }
 
-                        DocumentReference docRef = db.collection("users").document(uid);
-                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        pride = document.getString("p-ride");
-                                        //dride = document.getLong("longitude");
-                                        dride = document.getString("d-ride");
+                        currentRoute = response.body().routes().get(0);
 
-                                        if(dride != null) {
-                                            SetRide(style, mapboxMap, dride);
-                                        }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride);
-                                        }else{
+// Draw the route on the map
+                        if (navigationMapRoute != null) {
+                            navigationMapRoute.removeRoute();
+                        } else {
+                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
+                        }
+                        navigationMapRoute.addRoute(currentRoute);
+                    }
 
-                                        }
-
-
-                                    } else {
-                                        Log.d(TAG, "No such document on resume");
-                                    }
-                                } else {
-                                    Log.d(TAG, "get failed with ", task.getException());
-                                }
-                            }
-                        });
+                    @Override
+                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
+                        Log.e(TAG, "Error: " + throwable.getMessage());
                     }
                 });
-            }
-        });
+    }
+
+    @SuppressWarnings( {"MissingPermission"})
+    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
+// Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+// Activate the MapboxMap LocationComponent to show user location
+// Adding in LocationComponentOptions is also an optional parameter
+            locationComponent = mapboxMap.getLocationComponent();
+            locationComponent.activateLocationComponent(this, loadedMapStyle);
+            locationComponent.setLocationComponentEnabled(true);
+// Set the component's camera mode
+            locationComponent.setCameraMode(CameraMode.TRACKING);
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(this);
+        }
     }
 
     @Override
-    public void onPause() {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    public void onExplanationNeeded(List<String> permissionsToExplain) {
+        Toast.makeText(this, "test", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public void onPermissionResult(boolean granted) {
+        if (granted) {
+            enableLocationComponent(mapboxMap.getStyle());
+        } else {
+            Toast.makeText(this, "test", Toast.LENGTH_LONG).show();
+            finish();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mapView.onStart();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+    }
+
+    @Override
+    protected void onPause() {
         super.onPause();
-        mainMapView.onPause();
+        mapView.onPause();
     }
 
     @Override
-    public void onStop() {
+    protected void onStop() {
         super.onStop();
-        mainMapView.onStop();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mainMapView.onLowMemory();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mainMapView.onDestroy();
+        mapView.onStop();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mainMapView.onSaveInstanceState(outState);
+        mapView.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mapView.onLowMemory();
     }
 }
