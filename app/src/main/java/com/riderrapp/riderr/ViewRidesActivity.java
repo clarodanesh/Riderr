@@ -91,6 +91,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     // variables needed to initialize navigation
     private Button button;
 
+    private double lat = 0, lng = 0;
+    private String pride = "", dride = "";
+
 
 
     @Override
@@ -106,14 +109,21 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
-        mapboxMap.setStyle(getString(R.string.navigation_guidance_day), new Style.OnStyleLoaded() {
+        mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
             @Override
-            public void onStyleLoaded(@NonNull Style style) {
+            public void onStyleLoaded(@NonNull final Style style) {
+                FirebaseFirestore db = FirebaseFirestore.getInstance();
+                FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                String uid = fbuser.getUid();
+
                 enableLocationComponent(style);
 
                 addDestinationIconSymbolLayer(style);
 
                 mapboxMap.addOnMapClickListener(ViewRidesActivity.this);
+
+                GetUserRide(style, db, uid);
+
                 button = findViewById(R.id.startNavButton);
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -128,18 +138,86 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                     }
                 });
 
-                Point destinationPoint = Point.fromLngLat(0.1278, 51.5074);
-                Point originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
-                        locationComponent.getLastKnownLocation().getLatitude());
 
-                GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
-                if (source != null) {
-                    source.setGeoJson(Feature.fromGeometry(destinationPoint));
+                //button.setEnabled(true);
+                //button.setVisibility(View.VISIBLE);
+                //button.setBackgroundResource(R.color.design_default_color_primary_dark);
+            }
+        });
+    }
+
+    private void GetUserRide(final Style style, FirebaseFirestore db, String uid){
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        pride = document.getString("p-ride");
+                        //dride = document.getLong("longitude");
+                        dride = document.getString("d-ride");
+
+                        if(dride != null) {
+                            button.setVisibility(View.VISIBLE);
+                            SetRide(style, dride);
+                        }else if(pride != null){
+                            button.setVisibility(View.GONE);
+                            SetRide(style, pride);
+                        }else{
+                            button.setVisibility(View.GONE);
+                        }
+
+
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
                 }
+            }
+        });
+    }
 
-                getRoute(originPoint, destinationPoint);
-                button.setEnabled(true);
-                button.setBackgroundResource(R.color.design_default_color_primary_dark);
+    private void SetRide(final Style style, String rideid){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        lat = document.getDouble("latitude");
+                        //dride = document.getLong("longitude");
+                        lng = document.getDouble("longitude");
+
+
+                        Point destinationPoint = Point.fromLngLat(lng, lat);
+
+                        Point originPoint = null;
+                        if(locationComponent != null) {
+                            originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
+                                    locationComponent.getLastKnownLocation().getLatitude());
+
+                            GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
+                            if (source != null) {
+                                source.setGeoJson(Feature.fromGeometry(destinationPoint));
+                            }
+
+                            getRoute(originPoint, destinationPoint);
+                        }else{
+                            originPoint = Point.fromLngLat(0.1278, 51.5074);
+                        }
+
+
+                    } else {
+                        Log.d(TAG, "No such document set ride");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
             }
         });
     }
@@ -245,6 +323,10 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     public void onPermissionResult(boolean granted) {
         if (granted) {
             enableLocationComponent(mapboxMap.getStyle());
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+            String uid = fbuser.getUid();
+            GetUserRide(mapboxMap.getStyle(), db, uid);
         } else {
             Toast.makeText(this, "test", Toast.LENGTH_LONG).show();
             finish();
