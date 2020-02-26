@@ -256,9 +256,11 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void getRoute(Point origin, Point destination) {
+        Point wp = Point.fromLngLat(-2.661921, 53.731360);
         NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
+                .addWaypoint(wp)
                 .destination(destination)
                 .build()
                 .getRoute(new Callback<DirectionsResponse>() {
@@ -294,7 +296,8 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
     @SuppressWarnings( {"MissingPermission"})
     private void enableLocationComponent(@NonNull Style loadedMapStyle) {
-// Check if permissions are enabled and if not request
+
+        // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
 // Activate the MapboxMap LocationComponent to show user location
 // Adding in LocationComponentOptions is also an optional parameter
@@ -315,20 +318,22 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     @Override
-    public void onExplanationNeeded(List<String> permissionsToExplain) {
-        Toast.makeText(this, "test", Toast.LENGTH_LONG).show();
+    public void onExplanationNeeded(List<String> permissionsRequested) {
+        if(permissionsRequested.get(0).equals("android.permission.ACCESS_FINE_LOCATION")) {
+            Toast.makeText(this, "Riderr needs to access your location.", Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override
-    public void onPermissionResult(boolean granted) {
-        if (granted) {
+    public void onPermissionResult(boolean permissionGranted) {
+        if (permissionGranted) {
             enableLocationComponent(mapboxMap.getStyle());
             FirebaseFirestore db = FirebaseFirestore.getInstance();
             FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
             String uid = fbuser.getUid();
             GetUserRide(mapboxMap.getStyle(), db, uid);
         } else {
-            Toast.makeText(this, "test", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Please allow Riderr to see your location.", Toast.LENGTH_LONG).show();
             finish();
         }
     }
