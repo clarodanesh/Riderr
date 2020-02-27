@@ -14,6 +14,7 @@
         android:roundIcon="@mipmap/ic_riderr_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".NavigationActivity"></activity>
         <activity
             android:name=".SplashActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -67,7 +68,8 @@
             android:launchMode="singleTask"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" />
-        <activity android:name=".FoundRidesActivity"
+        <activity
+            android:name=".FoundRidesActivity"
             android:label="Found Rides"
             android:launchMode="singleTask"
             android:parentActivityName=".SearchActivity"

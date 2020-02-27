@@ -1,6 +1,8 @@
 package com.riderrapp.riderr;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -102,6 +104,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_view_rides);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
+        }
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
@@ -110,7 +115,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
         this.mapboxMap = mapboxMap;
-        mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+        mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
             @Override
             public void onStyleLoaded(@NonNull final Style style) {
                 FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -119,7 +124,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
                 enableLocationComponent(style);
 
-                addDestinationIconSymbolLayer(style);
+                //addDestinationIconSymbolLayer(style);
 
                 mapboxMap.addOnMapClickListener(ViewRidesActivity.this);
 
@@ -129,13 +134,15 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        boolean simulateRoute = true;
+                        /*boolean simulateRoute = true;
                         NavigationLauncherOptions options = NavigationLauncherOptions.builder()
                                 .directionsRoute(currentRoute)
                                 .shouldSimulateRoute(simulateRoute)
                                 .build();
 // Call this method with Context from within an Activity
-                        NavigationLauncher.startNavigation(ViewRidesActivity.this, options);
+                        NavigationLauncher.startNavigation(ViewRidesActivity.this, options);*/
+                        Intent intent = new Intent(ViewRidesActivity.this, NavigationActivity.class);
+                        startActivity(intent);
                     }
                 });
 
@@ -281,7 +288,8 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
 // Draw the route on the map
                         if (navigationMapRoute != null) {
-                            navigationMapRoute.removeRoute();
+                            //navigationMapRoute.removeRoute();
+                            navigationMapRoute.updateRouteArrowVisibilityTo(false);
                         } else {
                             navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
                         }
@@ -303,7 +311,20 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 // Activate the MapboxMap LocationComponent to show user location
 // Adding in LocationComponentOptions is also an optional parameter
             locationComponent = mapboxMap.getLocationComponent();
-            locationComponent.activateLocationComponent(this, loadedMapStyle);
+            LocationComponentOptions customLocationComponentOptions = LocationComponentOptions.builder(this)
+                    .elevation(5)
+                    .accuracyAlpha(.6f)
+                    .accuracyColor(ContextCompat.getColor(this, R.color.colorAccent))
+                    .foregroundTintColor(ContextCompat.getColor(this, R.color.colorAccent))
+                    .backgroundTintColor(ContextCompat.getColor(this, R.color.colorPrimary))
+                    .bearingTintColor(ContextCompat.getColor(this, R.color.colorAccent))   //DO ALL THIS WITH XML
+                    .build();
+
+            LocationComponentActivationOptions locationComponentActivationOptions =
+                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+                            .locationComponentOptions(customLocationComponentOptions)
+                            .build();
+            locationComponent.activateLocationComponent(locationComponentActivationOptions);
             locationComponent.setLocationComponentEnabled(true);
 // Set the component's camera mode
             locationComponent.setRenderMode(RenderMode.COMPASS);

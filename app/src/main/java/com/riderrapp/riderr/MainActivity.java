@@ -337,7 +337,7 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onMapReady(@NonNull final MapboxMap mapboxMap) {
                 mapboxMap.getUiSettings().setAllGesturesEnabled(false);
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
+                mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
                     @Override
                     public void onStyleLoaded(@NonNull final Style style) {
                         FirebaseFirestore db = FirebaseFirestore.getInstance();
