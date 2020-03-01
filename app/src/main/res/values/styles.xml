@@ -24,4 +24,13 @@
         <item name="android:background">@color/black_overlay</item>
     </style>
 
+    <style name="NavAlerts" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <!-- Used for the buttons -->
+        <item name="colorAccent">@color/colorAccent</item>
+        <!-- Used for the title and text -->
+        <item name="android:textColorPrimary">@color/colorAccent</item>
+        <!-- Used for the background -->
+        <item name="android:background">@color/colorPrimary</item>
+    </style>
+
 </resources>

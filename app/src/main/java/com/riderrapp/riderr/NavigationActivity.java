@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.Toast;
 
@@ -53,6 +54,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private boolean dropoffDialogShown;
     private Location lastKnownLocation;
     private LocationListeningCallback callback = new LocationListeningCallback(this);
+    private LocationEngine locationEngine;
 
     private List<Point> points = new ArrayList<>();
 
@@ -68,7 +70,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         //points.add(Point.fromLngLat(-2.480653, 53.752739));
         setContentView(R.layout.activity_navigation);
 
-        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(this);
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this);
         locationEngine.getLastLocation(callback);
 
         navigationView = findViewById(R.id.navigationView);
@@ -123,6 +125,11 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onStop() {
         super.onStop();
+
+        if (locationEngine != null) {
+            locationEngine.removeLocationUpdates(callback);
+        }
+
         navigationView.onStop();
     }
 
@@ -201,7 +208,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private void showDropoffDialog() {
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
         alertDialog.setMessage(getString(R.string.dropoff_dialog_text));
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"YES",new DialogInterface.OnClickListener(){
             @Override
@@ -221,7 +228,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     private void showLastDialog() {
         //TODO update ride status here to completed, so that every user that loads again on the ride has to set a rating for therid
-        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
         alertDialog.setMessage("The ride has come to an end");
         alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"FINISH RIDE",new DialogInterface.OnClickListener(){
             @Override
