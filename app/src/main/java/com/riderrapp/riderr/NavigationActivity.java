@@ -14,6 +14,10 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineCallback;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Point;
@@ -48,6 +52,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private NavigationView navigationView;
     private boolean dropoffDialogShown;
     private Location lastKnownLocation;
+    private LocationListeningCallback callback = new LocationListeningCallback(this);
 
     private List<Point> points = new ArrayList<>();
 
@@ -56,12 +61,16 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         setTheme(R.style.Theme_AppCompat_NoActionBar);
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
-        points.add(Point.fromLngLat(-2.488768, 53.761964));
-        points.add(Point.fromLngLat(-2.493877, 53.761447));
-        points.add(Point.fromLngLat(-2.495350, 53.762297));
-        points.add(Point.fromLngLat(-2.508802, 53.765503));
-        points.add(Point.fromLngLat(-2.530986, 53.773844));
+        points.add(Point.fromLngLat(-2.477901, 53.755266));
+        //points.add(Point.fromLngLat(-2.478621, 53.754781));
+        //points.add(Point.fromLngLat(-2.479508, 53.754138));
+        //points.add(Point.fromLngLat(-2.480254, 53.753245));
+        //points.add(Point.fromLngLat(-2.480653, 53.752739));
         setContentView(R.layout.activity_navigation);
+
+        LocationEngine locationEngine = LocationEngineProvider.getBestLocationEngine(this);
+        locationEngine.getLastLocation(callback);
+
         navigationView = findViewById(R.id.navigationView);
         navigationView.onCreate(savedInstanceState);
         navigationView.initialize(this);
@@ -125,7 +134,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     @Override
     public void onNavigationReady(boolean isRunning) {
-        fetchRoute(points.remove(0), points.remove(0));
+        fetchRoute(getLastKnownLocation(), points.remove(0));
     }
 
     @Override
@@ -170,6 +179,10 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             showDropoffDialog();
             dropoffDialogShown = true; // Accounts for multiple arrival events
             Toast.makeText(this, "You have arrived!", Toast.LENGTH_SHORT).show();
+        }else if(points.isEmpty()){
+            //TODO show the last dialog and then stop navigation to stop calling on arrival again and again
+            showLastDialog();
+            stopNavigation();
         }
     }
 
@@ -183,6 +196,10 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         navigationView.startNavigation(navigationViewOptions);
     }
 
+    private void stopNavigation() {
+        navigationView.stopNavigation();
+    }
+
     private void showDropoffDialog() {
         AlertDialog alertDialog = new AlertDialog.Builder(this).create();
         alertDialog.setMessage(getString(R.string.dropoff_dialog_text));
@@ -193,6 +210,20 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             }
         });
         alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"NO",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                finish();
+            }
+        });
+
+        alertDialog.show();
+    }
+
+    private void showLastDialog() {
+        //TODO update ride status here to completed, so that every user that loads again on the ride has to set a rating for therid
+        AlertDialog alertDialog = new AlertDialog.Builder(this).create();
+        alertDialog.setMessage("The ride has come to an end");
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"FINISH RIDE",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int in) {
                 finish();
@@ -238,6 +269,30 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private Point getLastKnownLocation() {
-        return Point.fromLngLat(lastKnownLocation.getLongitude(), lastKnownLocation.getLatitude());
+        return Point.fromLngLat(callback.lastLocation.getLongitude(), callback.lastLocation.getLatitude());
+    }
+
+    private static class LocationListeningCallback
+            implements LocationEngineCallback<LocationEngineResult> {
+
+        //private final WeakReference<MainActivity> activityWeakReference;
+        public Location lastLocation;
+
+        LocationListeningCallback(NavigationActivity activity) {
+            //this.activityWeakReference = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void onSuccess(LocationEngineResult result) {
+            // The LocationEngineCallback interface's method which fires when the device's location has changed.
+            lastLocation = result.getLastLocation();
+        }
+
+        @Override
+        public void onFailure(@NonNull Exception exception) {
+
+            // The LocationEngineCallback interface's method which fires when the device's location can not be captured
+
+        }
     }
 }
