@@ -250,10 +250,11 @@ public class MainActivity extends AppCompatActivity
             final Intent profileIntent = new Intent(this, ProfileActivity.class);
             startActivity(profileIntent);
             return true;
-        } else if (id == R.id.nav_settings) {
+        } else if (id == R.id.nav_logout) {
             //final Intent splashIntent = new Intent(this, SplashActivity.class);
             //startActivity(splashIntent);
             FirebaseAuth.getInstance().signOut();
+            finish();
             return true;
         } else if (id == R.id.nav_send) {
             final Intent Intent2 = new Intent(this, FoundRidesActivity.class);
