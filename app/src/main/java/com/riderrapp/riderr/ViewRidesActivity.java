@@ -267,11 +267,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void getRoute(Point origin, Point destination) {
-        Point wp = Point.fromLngLat(-2.661921, 53.731360);
         NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
-                .addWaypoint(wp)
                 .destination(destination)
                 .build()
                 .getRoute(new Callback<DirectionsResponse>() {
