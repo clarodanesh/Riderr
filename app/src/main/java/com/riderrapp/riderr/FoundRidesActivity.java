@@ -50,6 +50,10 @@ public class FoundRidesActivity extends AppCompatActivity {
 
     private static final String TAG = "FoundRidesActivity";
 
+    private String lng;
+    private String lat;
+    private Map<String, Object> uData = new HashMap<>();
+
     private FirebaseAuth mAuth;
 
     @Override
@@ -57,9 +61,31 @@ public class FoundRidesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_found_rides);
 
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = fbuser.getUid();
 
-        mAuth = FirebaseAuth.getInstance();
-        RideDataPrepare();
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        lng = document.getString("longitude");
+                        lat = document.getString("latitude");
+                        mAuth = FirebaseAuth.getInstance();
+                        RideDataPrepare();
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+
+
     }
 
     @Override
@@ -116,9 +142,13 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     //intent.putExtra();
                                     //startActivity(intent);
 
+                                    uData.put("passenger", fbuser.getUid());
+                                    uData.put("longitude", lng);
+                                    uData.put("latitude", lat);
+
                                     //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
                                     DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideDataList.get(position).rideId);
-                                    selectedRideRef.update("passengers", FieldValue.arrayUnion(fbuser.getUid()));
+                                    selectedRideRef.update("passengers", FieldValue.arrayUnion(uData));
                                     selectedRideRef.update("vehicleCapacity", FieldValue.increment(-1));
 
                                     Map<String, Object> user = new HashMap<>();

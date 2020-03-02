@@ -142,6 +142,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 // Call this method with Context from within an Activity
                         NavigationLauncher.startNavigation(ViewRidesActivity.this, options);*/
                         Intent intent = new Intent(ViewRidesActivity.this, NavigationActivity.class);
+
+                        intent.putExtra(NavigationActivity.RIDE_ID, dride);
+
                         startActivity(intent);
                     }
                 });

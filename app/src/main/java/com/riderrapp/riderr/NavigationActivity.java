@@ -15,6 +15,13 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.android.core.location.LocationEngine;
 import com.mapbox.android.core.location.LocationEngineCallback;
 import com.mapbox.android.core.location.LocationEngineProvider;
@@ -39,8 +46,11 @@ import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,6 +65,10 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private Location lastKnownLocation;
     private LocationListeningCallback callback = new LocationListeningCallback(this);
     private LocationEngine locationEngine;
+    public static final String RIDE_ID = "rideId";
+    private List<String> arr;
+    private Map<String, Object> cData = new HashMap<>();
+    private Map<String, String> uData = new HashMap<>();
 
     private List<Point> points = new ArrayList<>();
 
@@ -63,19 +77,66 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         setTheme(R.style.Theme_AppCompat_NoActionBar);
         super.onCreate(savedInstanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
-        points.add(Point.fromLngLat(-2.477901, 53.755266));
+        //points.add(Point.fromLngLat(-2.477901, 53.755266));
         //points.add(Point.fromLngLat(-2.478621, 53.754781));
         //points.add(Point.fromLngLat(-2.479508, 53.754138));
         //points.add(Point.fromLngLat(-2.480254, 53.753245));
         //points.add(Point.fromLngLat(-2.480653, 53.752739));
         setContentView(R.layout.activity_navigation);
 
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        final String uid = fbuser.getUid();
+
+        String rideid = (String)getIntent().getExtras().get(RIDE_ID);
+
+        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        cData = document.getData();
+                        Log.d(TAG, "Danesh");
+                        List<Map> d = (List<Map>) cData.get("passengers");
+                        for(int i = 0; i < d.size(); i++){
+                            uData = d.get(i);
+
+                            System.out.println("trophy " + uData.get("longitude"));
+                            String s = uData.get("longitude");
+                            String st = uData.get("latitude");
+                            Double l = Double.parseDouble(s);
+                            Double lt = Double.parseDouble(st);
+                            Point p = Point.fromLngLat(l, lt);
+
+                            points.add(Point.fromLngLat(l, lt));
+
+                            System.out.println("tester" + p);
+
+                        }
+
+                        //after all the waypoints have been added, need to se the final destination of the
+                        //whole journey here
+                        points.add(Point.fromLngLat(document.getDouble("longitude"), document.getDouble("latitude")));
+
+                        //navigation needs to be initialised
+                        navigationView.initialize(NavigationActivity.this);
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+
         locationEngine = LocationEngineProvider.getBestLocationEngine(this);
         locationEngine.getLastLocation(callback);
 
         navigationView = findViewById(R.id.navigationView);
         navigationView.onCreate(savedInstanceState);
-        navigationView.initialize(this);
+
     }
 
     @Override
@@ -186,7 +247,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             showDropoffDialog();
             dropoffDialogShown = true; // Accounts for multiple arrival events
             Toast.makeText(this, "You have arrived!", Toast.LENGTH_SHORT).show();
-        }else if(points.isEmpty()){
+        }else if(!dropoffDialogShown && points.isEmpty()){
             //TODO show the last dialog and then stop navigation to stop calling on arrival again and again
             showLastDialog();
             stopNavigation();
