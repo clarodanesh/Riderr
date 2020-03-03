@@ -39,24 +39,24 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private LocationManager mLocationManager;
     private final LocationListener mLocationListener = new LocationListener() {
-
         @Override
         public void onLocationChanged(final Location location) {
-            System.out.println("DANESH" + location.getLatitude());
-            lat = location.getLatitude();
-            lng = location.getLongitude();
+            System.out.println("Latitude changed to : " + location.getLatitude());
+            System.out.println("Longitude changed to : " + location.getLongitude());
+            //lat = location.getLatitude();
+            //lng = location.getLongitude();
         }
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-
+            System.out.println("Location listener status just changed to : " + status);
         }
         @Override
         public void onProviderEnabled(String provider) {
-
+            System.out.println("provider was just enabled : " + provider);
         }
         @Override
         public void onProviderDisabled(String provider) {
-
+            System.out.println("provider was just disabled : " + provider);
         }
     };
 
@@ -81,8 +81,16 @@ public class EditProfileActivity extends AppCompatActivity {
 
         updateLocationBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                latToServer = Double.toString(lat);
-                lngToServer = Double.toString(lng);
+                //latToServer = Double.toString(lat);
+                //lngToServer = Double.toString(lng);
+                if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+                    return;
+                }else{
+                    Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    latToServer = Double.toString(loc.getLatitude());
+                    lngToServer = Double.toString(loc.getLongitude());
+                }
             }
         });
 
