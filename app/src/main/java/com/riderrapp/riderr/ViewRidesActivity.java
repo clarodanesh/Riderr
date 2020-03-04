@@ -67,7 +67,10 @@ import android.view.Menu;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -97,7 +100,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     private double lat = 0, lng = 0;
     private String pride = "", dride = "";
 
-
+    private List<Point> wayPoints = new ArrayList<>();
+    private Map<String, Object> cData = new HashMap<>();
+    private Map<String, String> uData = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -200,6 +205,25 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
+                        cData = document.getData();
+                        Log.d(TAG, "Danesh");
+                        List<Map> d = (List<Map>) cData.get("passengers");
+                        for(int i = 0; i < d.size(); i++){
+                            uData = d.get(i);
+
+                            System.out.println("trophy " + uData.get("longitude"));
+                            String s = uData.get("longitude");
+                            String st = uData.get("latitude");
+                            Double l = Double.parseDouble(s);
+                            Double lt = Double.parseDouble(st);
+                            Point p = Point.fromLngLat(l, lt);
+
+                            wayPoints.add(Point.fromLngLat(l, lt));
+
+                            System.out.println("tester" + p);
+
+                        }
+
                         lat = document.getDouble("latitude");
                         //dride = document.getLong("longitude");
                         lng = document.getDouble("longitude");
@@ -267,11 +291,18 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void getRoute(Point origin, Point destination) {
-        NavigationRoute.builder(this)
+        NavigationRoute.Builder bld = NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
-                .destination(destination)
-                .build()
+                .destination(destination);
+
+                if(wayPoints.size() > 0) {
+                    for (Point waypoint : wayPoints) {
+                        bld.addWaypoint(waypoint);
+                    }
+                }
+
+                bld.build()
                 .getRoute(new Callback<DirectionsResponse>() {
                     @Override
                     public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
