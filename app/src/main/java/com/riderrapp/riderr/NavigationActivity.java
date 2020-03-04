@@ -2,18 +2,25 @@ package com.riderrapp.riderr;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -208,7 +215,9 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onCancelNavigation() {
         // Navigation canceled, finish the activity
-        finish();
+        showDidFinishDialog();
+        //showRatingDialog();
+        //finish();
     }
 
     @Override
@@ -298,6 +307,50 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             }
         });
 
+        alertDialog.show();
+    }
+
+    private void showDidFinishDialog() {
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        alertDialog.setMessage("Did the ride come to an end? (Clicking yes will remove access to this ride.)");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"YES",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                //finish();
+            }
+        });
+        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"NO",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                finish();
+            }
+        });
+        alertDialog.setCanceledOnTouchOutside(false);
+        alertDialog.show();
+    }
+
+    private void showRatingDialog() {
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        alertDialog.setMessage("Rate your passengers (0-5)");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                //finish();
+            }
+        });
+
+        final EditText input = new EditText(this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+
+        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
+        ViewCompat.setBackgroundTintList(input, colorStateList);
+        input.setTextColor(colorStateList);
+
+        alertDialog.setCancelable(false);
         alertDialog.show();
     }
 
