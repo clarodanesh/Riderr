@@ -6,5 +6,9 @@
     <color name="californiaGold">#FDB515</color>
     <color name="metallicGold">#BC9B6A</color>
 
+    <color name="badRed">#D82600</color>
+    <color name="okayAmber">#D8A000</color>
+    <color name="goodGreen">#00D851</color>
+
     <color name="black_overlay">#66000000</color>
 </resources>

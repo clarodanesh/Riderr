@@ -294,6 +294,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         NavigationRoute.Builder bld = NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
                 .origin(origin)
+                .profile("driving")
                 .destination(destination);
 
                 if(wayPoints.size() > 0) {

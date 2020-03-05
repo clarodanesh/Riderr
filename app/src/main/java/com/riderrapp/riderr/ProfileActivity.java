@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
@@ -36,6 +37,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBar;
 
 import android.view.Menu;
+import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -148,12 +150,26 @@ public class ProfileActivity extends AppCompatActivity {
                                 TextView carMakeLabel = (TextView)findViewById(R.id.CarMakeLabel);
                                 TextView carRegLabel = (TextView)findViewById(R.id.CarRegLabel);
                                 TextView carSeatsLabel = (TextView)findViewById(R.id.CarSeatsLabel);
+                                TextView ratingCaption = (TextView)findViewById(R.id.ratingCaption);
 
                                 fnameLabel.setText(document.getString("firstname"));
                                 lnameLabel.setText(document.getString("lastname"));
                                 emailLabel.setText(document.getString("user-email"));
                                 carMakeLabel.setText(document.getString("car-make"));
                                 carRegLabel.setText(document.getString("registration-no"));
+                                String rCapString = Long.toString(document.getLong("rating"));
+                                ratingCaption.setText(rCapString + "/5");
+                                long ratingLong = document.getLong("rating");
+
+                                if(ratingLong > 3){
+                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.goodGreen));
+                                }else if(ratingLong == 3){
+                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.okayAmber));
+                                }else if(ratingLong < 3){
+                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.badRed));
+                                }else{
+                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.black_overlay));
+                                }
 
                                 int seatsNo = document.getLong("seats-no").intValue();
                                 String seatsNoString = String.valueOf(seatsNo);
