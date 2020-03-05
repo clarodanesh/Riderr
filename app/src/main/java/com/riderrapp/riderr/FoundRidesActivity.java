@@ -52,6 +52,8 @@ public class FoundRidesActivity extends AppCompatActivity {
 
     private String lng;
     private String lat;
+    private long rating;
+    private long amtOfRatings;
     private Map<String, Object> uData = new HashMap<>();
 
     private FirebaseAuth mAuth;
@@ -74,6 +76,12 @@ public class FoundRidesActivity extends AppCompatActivity {
                     if (document.exists()) {
                         lng = document.getString("longitude");
                         lat = document.getString("latitude");
+                        amtOfRatings = document.getLong("amountOfRatings");
+                        if(document.get("rating") == null) {
+                            rating = -1;
+                        }else{
+                            rating = document.getLong("rating");
+                        }
                         mAuth = FirebaseAuth.getInstance();
                         RideDataPrepare();
                     } else {
@@ -145,6 +153,8 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     uData.put("passenger", fbuser.getUid());
                                     uData.put("longitude", lng);
                                     uData.put("latitude", lat);
+                                    uData.put("rating", rating);
+                                    uData.put("amountOfRatings", amtOfRatings);
 
                                     //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
                                     DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideDataList.get(position).rideId);

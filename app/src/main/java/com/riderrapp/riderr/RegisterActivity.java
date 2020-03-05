@@ -206,6 +206,7 @@ public class RegisterActivity extends AppCompatActivity {
         user.put("latitude", null);
         user.put("longitude", null);
         user.put("rating", null);
+        user.put("amountOfRatings", 0);
 
         db.collection("users").document(uid)
                 .set(user)

@@ -4,15 +4,18 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -23,7 +26,11 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -76,8 +83,11 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     private List<String> arr;
     private Map<String, Object> cData = new HashMap<>();
     private Map<String, String> uData = new HashMap<>();
+    private Map<String, Long> lData = new HashMap<>();
 
     private List<Point> points = new ArrayList<>();
+
+    String rideid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +105,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
         final String uid = fbuser.getUid();
 
-        String rideid = (String)getIntent().getExtras().get(RIDE_ID);
+        rideid = (String)getIntent().getExtras().get(RIDE_ID);
 
         DocumentReference docRef = db.collection("OfferedRides").document(rideid);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -215,8 +225,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onCancelNavigation() {
         // Navigation canceled, finish the activity
-        showDidFinishDialog();
-        //showRatingDialog();
+        //showDidFinishDialog();
+        showRatingDialog();
         //finish();
     }
 
@@ -330,16 +340,114 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     private void showRatingDialog() {
+        final EditText input = new EditText(this);
+
         AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
         alertDialog.setMessage("Rate your passengers (0-5)");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int in) {
                 //finish();
+                String ratingAsString;
+                final int ratingAsInt;
+                ratingAsString = input.getText().toString();
+                ratingAsInt = Integer.parseInt(ratingAsString);
+                if(ratingAsInt >= 0 && ratingAsInt <= 5){
+                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                    final String uid = fbuser.getUid();
+
+                    DocumentReference docRef = db.collection("OfferedRides").document(rideid);
+                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    cData = document.getData();
+                                    Log.d(TAG, "Danesh");
+                                    List<Map> d = (List<Map>) cData.get("passengers");
+                                    for(int i = 0; i < d.size(); i++){
+                                        uData = d.get(i);
+                                        lData = d.get(i);
+                                        final String userId = uData.get("passenger");
+                                        long rating = lData.get("rating");
+                                        long amtOfRatings = lData.get("amountOfRatings");
+                                        final long amtOfRatingsIncludingThis = amtOfRatings + 1;
+                                        final long ratingToAddToDB;
+                                        final float ratingBeforeRounding;
+                                        final long accumulatedRating;
+
+                                        if(rating == -1){
+                                            ratingToAddToDB = ratingAsInt / 1;
+                                        }else{
+                                            accumulatedRating = amtOfRatings * rating;
+                                            ratingBeforeRounding = ((float)ratingAsInt + (float)accumulatedRating) / (float)amtOfRatingsIncludingThis;
+                                            ratingToAddToDB = Math.round(ratingBeforeRounding);
+                                        }
+
+                                        DocumentReference docRef = db.collection("users").document(userId);
+                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()) {
+                                                    DocumentSnapshot document = task.getResult();
+                                                    if (document.exists()) {
+                                                        Map<String, Object> user = new HashMap<>();
+                                                        user.put("rating", ratingToAddToDB);
+                                                        user.put("amountOfRatings", amtOfRatingsIncludingThis);
+
+                                                        db.collection("users").document(userId)
+                                                                .update(user)
+                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                    @Override
+                                                                    public void onSuccess(Void aVoid) {
+                                                                        Log.d(TAG, "USER RATINGS UPDATED");
+                                                                    }
+                                                                })
+                                                                .addOnFailureListener(new OnFailureListener() {
+                                                                    @Override
+                                                                    public void onFailure(@NonNull Exception e) {
+                                                                        Log.w(TAG, "Error writing document", e);
+                                                                    }
+                                                                });
+                                                    } else {
+                                                        Log.d(TAG, "No such document");
+                                                    }
+                                                } else {
+                                                    Log.d(TAG, "get failed with ", task.getException());
+                                                }
+                                            }
+                                        });
+
+                                    }
+
+                                    //after all the waypoints have been added, need to se the final destination of the
+                                    //whole journey here
+                                    points.add(Point.fromLngLat(document.getDouble("longitude"), document.getDouble("latitude")));
+
+                                    //navigation needs to be initialised
+                                    navigationView.initialize(NavigationActivity.this);
+                                } else {
+                                    Log.d(TAG, "No such document");
+                                }
+                            } else {
+                                Log.d(TAG, "get failed with ", task.getException());
+                            }
+                        }
+                    });
+                }else{
+                    Snackbar ratingSB = Snackbar.make(navigationView, "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
+                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(NavigationActivity.this, R.color.colorAccent));
+                    View view = ratingSB.getView();
+                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
+                    tv.setTextColor(ContextCompat.getColor(NavigationActivity.this, R.color.colorPrimary));
+                    ratingSB.show();
+                }
             }
         });
 
-        final EditText input = new EditText(this);
+
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT);
