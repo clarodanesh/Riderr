@@ -10,5 +10,5 @@
     <color name="okayAmber">#D8A000</color>
     <color name="goodGreen">#00D851</color>
 
-    <color name="black_overlay">#66000000</color>
+    <color name="black_overlay">#000000</color>
 </resources>
