@@ -157,18 +157,23 @@ public class ProfileActivity extends AppCompatActivity {
                                 emailLabel.setText(document.getString("user-email"));
                                 carMakeLabel.setText(document.getString("car-make"));
                                 carRegLabel.setText(document.getString("registration-no"));
-                                String rCapString = Long.toString(document.getLong("rating"));
-                                ratingCaption.setText(rCapString + "/5");
-                                long ratingLong = document.getLong("rating");
-
-                                if(ratingLong > 3){
-                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.goodGreen));
-                                }else if(ratingLong == 3){
-                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.okayAmber));
-                                }else if(ratingLong < 3){
-                                    ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.badRed));
-                                }else{
+                                String rCapString;
+                                if(document.get("rating") == null){
+                                    rCapString = "N/A";
                                     ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.black_overlay));
+                                    ratingCaption.setText(rCapString);
+                                }else{
+                                    rCapString = Long.toString(document.getLong("rating"));
+                                    ratingCaption.setText(rCapString + "/5");
+                                    long ratingLong = document.getLong("rating");
+
+                                    if(ratingLong > 3){
+                                        ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.goodGreen));
+                                    }else if(ratingLong == 3){
+                                        ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.okayAmber));
+                                    }else if(ratingLong < 3){
+                                        ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.badRed));
+                                    }
                                 }
 
                                 int seatsNo = document.getLong("seats-no").intValue();
