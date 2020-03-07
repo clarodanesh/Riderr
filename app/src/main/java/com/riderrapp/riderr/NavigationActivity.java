@@ -465,11 +465,10 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     private void SetRideToCompleted(){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         Map<String, Object> rideMap = new HashMap<>();
         rideMap.put("completed", true);
 
-        db.collection("users").document(user.getUid())
+        db.collection("OfferedRides").document(rideid)
                 .update(rideMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
