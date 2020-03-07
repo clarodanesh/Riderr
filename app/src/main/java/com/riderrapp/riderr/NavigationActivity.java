@@ -87,7 +87,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
     private List<Point> points = new ArrayList<>();
 
-    String rideid;
+    private String rideid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -269,6 +269,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         }else if(!dropoffDialogShown && points.isEmpty()){
             //TODO show the last dialog and then stop navigation to stop calling on arrival again and again
             showLastDialog();
+            SetRideToCompleted();
             stopNavigation();
         }
     }
@@ -460,6 +461,28 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
 
         alertDialog.setCancelable(false);
         alertDialog.show();
+    }
+
+    private void SetRideToCompleted(){
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        Map<String, Object> rideMap = new HashMap<>();
+        rideMap.put("completed", true);
+
+        db.collection("users").document(user.getUid())
+                .update(rideMap)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "USER RATINGS UPDATED");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing document", e);
+                    }
+                });
     }
 
     private void fetchRoute(Point origin, Point destination) {
