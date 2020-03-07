@@ -188,7 +188,7 @@ public class FoundRidesActivity extends AppCompatActivity {
                                 Log.d(TAG, document.getId() + " => " + document.get("place"));
                                 Log.d(TAG, document.getId() + " => " + document.get("date"));
                                 Log.d(TAG, document.getId() + " => " + document.get("time"));
-                                if(document.getLong("vehicleCapacity").intValue() > 0) {
+                                if(document.getLong("vehicleCapacity").intValue() > 0 && document.getBoolean("completed") == false) {
                                     data = new rideData(document.get("place").toString(), document.get("date").toString(), document.get("time").toString(), document.get("offeredBy").toString(), document.getId());
                                     rideDataList.add(data);
                                 }else{
