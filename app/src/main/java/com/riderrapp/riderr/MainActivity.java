@@ -1,14 +1,19 @@
 package com.riderrapp.riderr;
 
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -26,6 +31,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -40,6 +46,7 @@ import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
 import com.mapbox.mapboxsdk.utils.BitmapUtils;
 
+import androidx.core.view.ViewCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -47,7 +54,15 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import androidx.cardview.widget.CardView;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -62,6 +77,11 @@ public class MainActivity extends AppCompatActivity
     private static final String ID_ICON_MARKER = "marker";
     private double lat = 0, lng = 0;
     private String pride = "", dride = "";
+    private boolean rideComplete;
+
+    private Map<String, Object> cData = new HashMap<>();
+    private Map<String, String> uData = new HashMap<>();
+    private Map<String, Long> lData = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -174,9 +194,9 @@ public class MainActivity extends AppCompatActivity
                                         dride = document.getString("d-ride");
 
                                         if(dride != null) {
-                                            SetRide(style, mapboxMap, dride);
+                                            SetRide(style, mapboxMap, dride, "driver");
                                         }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride);
+                                            SetRide(style, mapboxMap, pride, "passenger");
                                         }else{
 
                                         }
@@ -267,7 +287,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void SetRide(final Style style, final MapboxMap mapboxMap, String rideid){
+    private void SetRide(final Style style, final MapboxMap mapboxMap, final String rideid, final String rideType){
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         DocumentReference docRef = db.collection("OfferedRides").document(rideid);
@@ -280,34 +300,40 @@ public class MainActivity extends AppCompatActivity
                         lat = document.getDouble("latitude");
                         //dride = document.getLong("longitude");
                         lng = document.getDouble("longitude");
+                        rideComplete = document.getBoolean("completed");
 
+                        if(rideComplete && rideType.equals("driver")){
+                            showDriverRatingDialog(rideid);
+                        }else if(rideComplete && rideType.equals("passenger")){
+                            showPassRatingDialog(rideid);
+                        }else {
+                            AddAnnotationMarkerToStyle(style);
+                            // create symbol manager
+                            GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
+                            symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
+                            symbolManager.deleteAll();
 
-                        AddAnnotationMarkerToStyle(style);
-                        // create symbol manager
-                        GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
-                        symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
-                        symbolManager.deleteAll();
+                            symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
+                            // set non data driven properties
+                            symbolManager.setIconAllowOverlap(true);
+                            symbolManager.setTextAllowOverlap(true);
 
-                        symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
-                        // set non data driven properties
-                        symbolManager.setIconAllowOverlap(true);
-                        symbolManager.setTextAllowOverlap(true);
+                            // create a symbol
+                            SymbolOptions symbolOptions = new SymbolOptions()
+                                    .withLatLng(new LatLng(lat, lng))
+                                    .withIconImage(ID_ICON_MARKER)
+                                    .withIconSize(1f)
+                                    .withSymbolSortKey(10.0f);
+                            //.withDraggable(true);
+                            symbol = symbolManager.create(symbolOptions);
+                            Timber.e(symbol.toString());
 
-                        // create a symbol
-                        SymbolOptions symbolOptions = new SymbolOptions()
-                                .withLatLng(new LatLng(lat, lng))
-                                .withIconImage(ID_ICON_MARKER)
-                                .withIconSize(1f)
-                                .withSymbolSortKey(10.0f);
-                        //.withDraggable(true);
-                        symbol = symbolManager.create(symbolOptions);
-                        Timber.e(symbol.toString());
-
-                        mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                                new CameraPosition.Builder()
-                                        .target(new LatLng(lat, lng))
-                                        .zoom(8)
-                                        .build()), 4000);
+                            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                                    new CameraPosition.Builder()
+                                            .target(new LatLng(lat, lng))
+                                            .zoom(8)
+                                            .build()), 4000);
+                        }
                     } else {
                         Log.d(TAG, "No such document set ride");
                     }
@@ -357,9 +383,9 @@ public class MainActivity extends AppCompatActivity
                                         dride = document.getString("d-ride");
 
                                         if(dride != null) {
-                                            SetRide(style, mapboxMap, dride);
+                                            SetRide(style, mapboxMap, dride, "driver");
                                         }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride);
+                                            SetRide(style, mapboxMap, pride, "passenger");
                                         }else{
 
                                         }
@@ -407,5 +433,248 @@ public class MainActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mainMapView.onSaveInstanceState(outState);
+    }
+
+    private void showDriverRatingDialog(final String rid) {
+        final EditText input = new EditText(this);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        alertDialog.setMessage("Rate your driver (0-5)");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                //finish();
+                String ratingAsString;
+                final int ratingAsInt;
+                ratingAsString = input.getText().toString();
+                ratingAsInt = Integer.parseInt(ratingAsString);
+                if(ratingAsInt >= 0 && ratingAsInt <= 5){
+                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                    final String uid = fbuser.getUid();
+
+                    DocumentReference docRef = db.collection("OfferedRides").document(rid);
+                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    cData = document.getData();
+                                    Log.d(TAG, "Danesh");
+                                    List<Map> d = (List<Map>) cData.get("passengers");
+                                    for(int i = 0; i < d.size(); i++){
+                                        uData = d.get(i);
+                                        lData = d.get(i);
+                                        final String userId = uData.get("passenger");
+                                        long rating = lData.get("rating");
+                                        long amtOfRatings = lData.get("amountOfRatings");
+                                        final long amtOfRatingsIncludingThis = amtOfRatings + 1;
+                                        final long ratingToAddToDB;
+                                        final float ratingBeforeRounding;
+                                        final long accumulatedRating;
+
+                                        if(rating == -1){
+                                            ratingToAddToDB = ratingAsInt / 1;
+                                        }else{
+                                            accumulatedRating = amtOfRatings * rating;
+                                            ratingBeforeRounding = ((float)ratingAsInt + (float)accumulatedRating) / (float)amtOfRatingsIncludingThis;
+                                            ratingToAddToDB = Math.round(ratingBeforeRounding);
+                                        }
+
+                                        DocumentReference docRef = db.collection("users").document(userId);
+                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                                if (task.isSuccessful()) {
+                                                    DocumentSnapshot document = task.getResult();
+                                                    if (document.exists()) {
+                                                        Map<String, Object> user = new HashMap<>();
+                                                        user.put("rating", ratingToAddToDB);
+                                                        user.put("amountOfRatings", amtOfRatingsIncludingThis);
+
+                                                        db.collection("users").document(userId)
+                                                                .update(user)
+                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                    @Override
+                                                                    public void onSuccess(Void aVoid) {
+                                                                        Log.d(TAG, "USER RATINGS UPDATED");
+                                                                    }
+                                                                })
+                                                                .addOnFailureListener(new OnFailureListener() {
+                                                                    @Override
+                                                                    public void onFailure(@NonNull Exception e) {
+                                                                        Log.w(TAG, "Error writing document", e);
+                                                                    }
+                                                                });
+                                                    } else {
+                                                        Log.d(TAG, "No such document");
+                                                    }
+                                                } else {
+                                                    Log.d(TAG, "get failed with ", task.getException());
+                                                }
+                                            }
+                                        });
+
+                                    }
+                                } else {
+                                    Log.d(TAG, "No such document");
+                                }
+                            } else {
+                                Log.d(TAG, "get failed with ", task.getException());
+                            }
+                        }
+                    });
+                }else{
+                    Snackbar ratingSB = Snackbar.make(findViewById(R.id.main_content), "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
+                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+                    View view = ratingSB.getView();
+                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
+                    tv.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+                    ratingSB.show();
+                }
+            }
+        });
+
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+
+        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
+        ViewCompat.setBackgroundTintList(input, colorStateList);
+        input.setTextColor(colorStateList);
+
+        alertDialog.setCancelable(false);
+        alertDialog.show();
+    }
+
+    private void showPassRatingDialog(final String rid) {
+        final EditText input = new EditText(this);
+
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        alertDialog.setMessage("Rate your driver (0-5)");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                //finish();
+                String ratingAsString;
+                final int ratingAsInt;
+                ratingAsString = input.getText().toString();
+                ratingAsInt = Integer.parseInt(ratingAsString);
+                if(ratingAsInt >= 0 && ratingAsInt <= 5){
+                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                    final String uid = fbuser.getUid();
+
+                    DocumentReference docRef = db.collection("OfferedRides").document(rid);
+                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    DocumentReference driverDocRef = db.collection("users").document(document.getString("offeredBy"));
+                                    driverDocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                            if (task.isSuccessful()) {
+                                                DocumentSnapshot document = task.getResult();
+                                                if (document.exists()) {
+                                                    check(document.getString("user-id"), document.getLong("rating"), document.getLong("amountOfRatings"), ratingAsInt, db);
+                                                } else {
+                                                    Log.d(TAG, "No such document");
+                                                }
+                                            } else {
+                                                Log.d(TAG, "get failed with ", task.getException());
+                                            }
+                                        }
+                                    });
+                                } else {
+                                    Log.d(TAG, "No such document");
+                                }
+                            } else {
+                                Log.d(TAG, "get failed with ", task.getException());
+                            }
+                        }
+                    });
+                }else{
+                    Snackbar ratingSB = Snackbar.make(findViewById(R.id.main_content), "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
+                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
+                    View view = ratingSB.getView();
+                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
+                    tv.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
+                    ratingSB.show();
+                }
+            }
+        });
+
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        input.setLayoutParams(lp);
+        alertDialog.setView(input);
+
+        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
+        ViewCompat.setBackgroundTintList(input, colorStateList);
+        input.setTextColor(colorStateList);
+
+        alertDialog.setCancelable(false);
+        alertDialog.show();
+    }
+
+    private void check(final String userId, long rating, long amtOfRatings, int ratingAsInt, final FirebaseFirestore db){
+        //final String userId = uData.get("passenger");
+        //long rating = lData.get("rating");
+        //long amtOfRatings = lData.get("amountOfRatings");
+        final long amtOfRatingsIncludingThis = amtOfRatings + 1;
+        final long ratingToAddToDB;
+        final float ratingBeforeRounding;
+        final long accumulatedRating;
+
+        if(rating == -1){
+            ratingToAddToDB = ratingAsInt / 1;
+        }else{
+            accumulatedRating = amtOfRatings * rating;
+            ratingBeforeRounding = ((float)ratingAsInt + (float)accumulatedRating) / (float)amtOfRatingsIncludingThis;
+            ratingToAddToDB = Math.round(ratingBeforeRounding);
+        }
+
+        DocumentReference docRef = db.collection("users").document(userId);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("rating", ratingToAddToDB);
+                        user.put("amountOfRatings", amtOfRatingsIncludingThis);
+
+                        db.collection("users").document(userId)
+                                .update(user)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d(TAG, "USER RATINGS UPDATED");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w(TAG, "Error writing document", e);
+                                    }
+                                });
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
     }
 }

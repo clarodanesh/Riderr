@@ -331,6 +331,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         data.put("vehicleCapacity", vcap);
         data.put("placeName", pName);
         data.put("passengers", Arrays.asList());
+        data.put("completed", false);
 
         db.collection("OfferedRides")
                 .add(data)
