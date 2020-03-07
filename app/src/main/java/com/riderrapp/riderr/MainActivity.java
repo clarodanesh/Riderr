@@ -303,9 +303,9 @@ public class MainActivity extends AppCompatActivity
                         rideComplete = document.getBoolean("completed");
 
                         if(rideComplete && rideType.equals("driver")){
-                            showDriverRatingDialog(rideid);
+                            showDriverRatingDialog(rideid, rideType);
                         }else if(rideComplete && rideType.equals("passenger")){
-                            showPassRatingDialog(rideid);
+                            showPassRatingDialog(rideid, rideType);
                         }else {
                             AddAnnotationMarkerToStyle(style);
                             // create symbol manager
@@ -435,7 +435,32 @@ public class MainActivity extends AppCompatActivity
         mainMapView.onSaveInstanceState(outState);
     }
 
-    private void showDriverRatingDialog(final String rid) {
+    private void DeleteRideFromUser(FirebaseFirestore db, String rideType){
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        Map<String, Object> userMap = new HashMap<>();
+        if(rideType.equals("driver")){
+            userMap.put("d-ride", null);
+        }else{
+            userMap.put("p-ride", null);
+        }
+
+        db.collection("users").document(user.getUid())
+                .update(userMap)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.d(TAG, "USER RATINGS UPDATED");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error writing document", e);
+                    }
+                });
+    }
+
+    private void showDriverRatingDialog(final String rid, final String rideType) {
         final EditText input = new EditText(this);
 
         AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
@@ -499,6 +524,7 @@ public class MainActivity extends AppCompatActivity
                                                                     @Override
                                                                     public void onSuccess(Void aVoid) {
                                                                         Log.d(TAG, "USER RATINGS UPDATED");
+                                                                        DeleteRideFromUser(db, rideType);
                                                                     }
                                                                 })
                                                                 .addOnFailureListener(new OnFailureListener() {
@@ -551,7 +577,7 @@ public class MainActivity extends AppCompatActivity
         alertDialog.show();
     }
 
-    private void showPassRatingDialog(final String rid) {
+    private void showPassRatingDialog(final String rid, final String rideType) {
         final EditText input = new EditText(this);
 
         AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
@@ -583,7 +609,7 @@ public class MainActivity extends AppCompatActivity
                                             if (task.isSuccessful()) {
                                                 DocumentSnapshot document = task.getResult();
                                                 if (document.exists()) {
-                                                    check(document.getString("user-id"), document.getLong("rating"), document.getLong("amountOfRatings"), ratingAsInt, db);
+                                                    check(document.getString("user-id"), document.getLong("rating"), document.getLong("amountOfRatings"), ratingAsInt, db, rideType);
                                                 } else {
                                                     Log.d(TAG, "No such document");
                                                 }
@@ -626,7 +652,7 @@ public class MainActivity extends AppCompatActivity
         alertDialog.show();
     }
 
-    private void check(final String userId, long rating, long amtOfRatings, int ratingAsInt, final FirebaseFirestore db){
+    private void check(final String userId, long rating, long amtOfRatings, int ratingAsInt, final FirebaseFirestore db, final String rideType){
         //final String userId = uData.get("passenger");
         //long rating = lData.get("rating");
         //long amtOfRatings = lData.get("amountOfRatings");
@@ -660,6 +686,7 @@ public class MainActivity extends AppCompatActivity
                                     @Override
                                     public void onSuccess(Void aVoid) {
                                         Log.d(TAG, "USER RATINGS UPDATED");
+                                        DeleteRideFromUser(db, rideType);
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
