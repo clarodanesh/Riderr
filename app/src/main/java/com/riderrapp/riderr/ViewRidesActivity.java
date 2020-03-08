@@ -65,6 +65,7 @@ import androidx.appcompat.app.ActionBar;
 
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -162,6 +163,18 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         });
     }
 
+    private void SetTextViewText(String d, String dt, String t, String dest){
+        TextView driverLabel = (TextView)findViewById(R.id.driverText);
+        TextView dateLabel = (TextView)findViewById(R.id.dateText);
+        TextView timeLabel = (TextView)findViewById(R.id.timeText);
+        TextView destinationLabel = (TextView)findViewById(R.id.destText);
+
+        driverLabel.setText(driverLabel.getText() + d);
+        dateLabel.setText(dateLabel.getText() + dt);
+        timeLabel.setText(timeLabel.getText() + t);
+        destinationLabel.setText(destinationLabel.getText() + dest);
+    }
+
     private void GetUserRide(final Style style, FirebaseFirestore db, String uid){
         DocumentReference docRef = db.collection("users").document(uid);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -205,6 +218,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 if (task.isSuccessful()) {
                     DocumentSnapshot document = task.getResult();
                     if (document.exists()) {
+                        SetTextViewText(document.getString("offeredBy"), document.getString("date"), document.getString("time"), document.getString("destination"));
                         cData = document.getData();
                         Log.d(TAG, "Danesh");
                         List<Map> d = (List<Map>) cData.get("passengers");
