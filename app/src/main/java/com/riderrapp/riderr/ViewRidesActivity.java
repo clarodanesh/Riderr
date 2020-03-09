@@ -168,12 +168,31 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     }
 
     private void SetTextViewText(String d, String dt, String t, String dest){
-        TextView driverLabel = (TextView)findViewById(R.id.driverText);
+        final TextView driverLabel = (TextView)findViewById(R.id.driverText);
         TextView dateLabel = (TextView)findViewById(R.id.dateText);
         TextView timeLabel = (TextView)findViewById(R.id.timeText);
         TextView destinationLabel = (TextView)findViewById(R.id.destText);
 
-        driverLabel.setText(driverLabel.getText() + d);
+        final String fullDriverName;
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("users").document(d);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        driverLabel.setText(driverLabel.getText() + document.getString("firstname") + " " + document.getString("lastname"));
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+
         dateLabel.setText(dateLabel.getText() + dt);
         timeLabel.setText(timeLabel.getText() + t);
         destinationLabel.setText(destinationLabel.getText() + dest);
