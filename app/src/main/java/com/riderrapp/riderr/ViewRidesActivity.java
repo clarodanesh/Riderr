@@ -28,8 +28,11 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.api.matrix.v1.MapboxMatrix;
+import com.mapbox.api.matrix.v1.models.MatrixResponse;
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -68,6 +71,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -233,7 +237,6 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                             Point p = Point.fromLngLat(l, lt);
 
                             wayPoints.add(Point.fromLngLat(l, lt));
-
                             System.out.println("tester" + p);
 
                         }
@@ -304,6 +307,16 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         return true;
     }
 
+    private Long ConvertSecondsToMinutes(Double secs){
+        Double mins = secs / 60;
+        return Math.round(mins);
+    }
+
+    private Long ConvertDistanceToMiles(Double dist){
+        Double miles = dist * 0.000621;
+        return Math.round(miles);
+    }
+
     private void getRoute(Point origin, Point destination) {
         NavigationRoute.Builder bld = NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
@@ -332,6 +345,14 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                         }
 
                         currentRoute = response.body().routes().get(0);
+                        Long minutes = ConvertSecondsToMinutes(currentRoute.duration());
+                        Long miles = ConvertDistanceToMiles(currentRoute.distance());
+
+                        TextView etaLabel = (TextView)findViewById(R.id.etaText);
+                        TextView ejdLabel = (TextView)findViewById(R.id.ejdText);
+
+                        etaLabel.setText(etaLabel.getText() + minutes.toString() + " minutes");
+                        ejdLabel.setText(ejdLabel.getText() + miles.toString() + " miles");
 
 // Draw the route on the map
                         if (navigationMapRoute != null) {
