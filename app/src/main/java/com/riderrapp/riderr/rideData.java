@@ -6,11 +6,13 @@ public class rideData {
     String place;
     String offeredBy;
     String rideId;
-    public rideData(String place, String date, String time, String offeredBy, String rideId) {
+    String price;
+    public rideData(String place, String date, String time, String offeredBy, String rideId, String price) {
         this.place = place;
         this.date = date;
         this.time = time;
         this.offeredBy = offeredBy;
         this.rideId = rideId;
+        this.price = price;
     }
 }

@@ -87,6 +87,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
     private String country, dateTimeStamp, offeredBy, place, region, placeName;
     private double longitude, latitude;
     private int vehicleCapacity;
+    private String rprice;
 
 
     //String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap
@@ -302,6 +303,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                         Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
 
                         vehicleCapacity = document.getLong("seats-no").intValue();
+                        rprice = document.getString("ride-price");
                     } else {
                         Log.d(TAG, "No such document");
                     }
@@ -332,6 +334,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         data.put("placeName", pName);
         data.put("passengers", Arrays.asList());
         data.put("completed", false);
+        data.put("ride-price", rprice);
 
         db.collection("OfferedRides")
                 .add(data)

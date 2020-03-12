@@ -53,6 +53,7 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
         viewHolder.place.setText("Place: " + data.place);
         viewHolder.date.setText("Date: " + data.date);
         viewHolder.time.setText("Time: " + data.time);
+        viewHolder.price.setText("Price: " + data.price);
         cview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -67,7 +68,7 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
         return rideDataList.size();
     }
     class FoundRidesViewHolder extends RecyclerView.ViewHolder {
-        TextView place, date, time;
+        TextView place, date, time, price;
         LinearLayout parent;
         CardView cv;
         Button b;
@@ -79,6 +80,7 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
             place = itemView.findViewById(R.id.info_text);
             date = itemView.findViewById(R.id.info_text2);
             time = itemView.findViewById(R.id.info_text3);
+            price = itemView.findViewById(R.id.info_text4);
         }
     }
 }
