@@ -151,6 +151,7 @@ public class ProfileActivity extends AppCompatActivity {
                                 TextView carRegLabel = (TextView)findViewById(R.id.CarRegLabel);
                                 TextView carSeatsLabel = (TextView)findViewById(R.id.CarSeatsLabel);
                                 TextView ratingCaption = (TextView)findViewById(R.id.ratingCaption);
+                                TextView priceLabel = (TextView)findViewById(R.id.PriceLabel);
 
                                 fnameLabel.setText(document.getString("firstname"));
                                 lnameLabel.setText(document.getString("lastname"));
@@ -176,10 +177,15 @@ public class ProfileActivity extends AppCompatActivity {
                                     }
                                 }
 
+                                if(document.get("ride-price") == null){
+                                    priceLabel.setText("");
+                                }else{
+                                    priceLabel.setText(document.getString("ride-price"));
+                                }
+
                                 int seatsNo = document.getLong("seats-no").intValue();
                                 String seatsNoString = String.valueOf(seatsNo);
                                 carSeatsLabel.setText(seatsNoString);
-
                             } else {
                                 Log.d(TAG, "No such document");
                             }

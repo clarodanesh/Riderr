@@ -158,11 +158,13 @@ public class EditProfileActivity extends AppCompatActivity {
                         final EditText carMakeEdit =  (EditText) findViewById(R.id.editCarMake);
                         final EditText carRegEdit =  (EditText) findViewById(R.id.editCarReg);
                         final EditText carSeatsEdit =  (EditText) findViewById(R.id.editCarSeats);
+                        final EditText priceEdit =  (EditText) findViewById(R.id.editPrice);
 
                         firstNameEdit.setHint(document.getString("firstname"));
                         lastNameEdit.setHint(document.getString("lastname"));
                         carMakeEdit.setHint(document.getString("car-make"));
                         carRegEdit.setHint(document.getString("registration-no"));
+                        priceEdit.setHint(document.getString("ride-price"));
 
                         int seatsNo = document.getLong("seats-no").intValue();
                         String seatsNoString = String.valueOf(seatsNo);
@@ -188,6 +190,7 @@ public class EditProfileActivity extends AppCompatActivity {
         final EditText carMakeText =  (EditText) findViewById(R.id.editCarMake);
         final EditText carRegText =  (EditText) findViewById(R.id.editCarReg);
         final EditText carSeatsText =  (EditText) findViewById(R.id.editCarSeats);
+        final EditText priceText =  (EditText) findViewById(R.id.editPrice);
 
         Map<String, Object> user = new HashMap<>();
         /*user.put("user-id", uid);
@@ -213,6 +216,9 @@ public class EditProfileActivity extends AppCompatActivity {
         if(!TextUtils.isEmpty(carSeatsText.getText().toString())){
             int n = Integer.parseInt(carSeatsText.getText().toString());
             user.put("seats-no", n);
+        }
+        if(!TextUtils.isEmpty(priceText.getText().toString())){
+            user.put("ride-price", priceText.getText().toString());
         }
         if(latToServer != null){
             user.put("latitude", latToServer);

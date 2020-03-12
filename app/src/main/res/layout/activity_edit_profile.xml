@@ -168,6 +168,31 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/CarSeatsCaption" />
 
+    <TextView
+        android:id="@+id/EditPriceCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="38dp"
+        android:layout_marginTop="16dp"
+        android:text="Price"
+        android:textSize="15sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editCarSeats" />
+
+    <EditText
+        android:id="@+id/editPrice"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="34dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint=""
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/EditPriceCaption" />
 
 
     <Button
