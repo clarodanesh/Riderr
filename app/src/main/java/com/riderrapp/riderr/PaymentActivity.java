@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.braintreepayments.api.dropin.DropInActivity;
@@ -40,6 +41,9 @@ public class PaymentActivity extends AppCompatActivity {
     public static final String AMOUNT_OF_RATINGS = "amt_of_ratings";
     public static final String RIDE_ID = "rideid";
     public static final String PRICE = "price";
+    public static final String TIME = "time";
+    public static final String DATE = "date";
+    public static final String DEST = "dest";
 
 
     private static final String TAG = "FoundRidesActivity";
@@ -77,6 +81,20 @@ public class PaymentActivity extends AppCompatActivity {
         });
 
         price = (String)getIntent().getExtras().get(PRICE);
+
+        PopulateTextViews();
+    }
+
+    public void PopulateTextViews(){
+        TextView destLabel = (TextView)findViewById(R.id.DestinationLabel);
+        TextView dateLabel = (TextView)findViewById(R.id.DateLabel);
+        TextView timeLabel = (TextView)findViewById(R.id.TimeLabel);
+        TextView priceLabel = (TextView)findViewById(R.id.PriceLabel);
+
+        destLabel.setText((String)getIntent().getExtras().get(DEST));
+        dateLabel.setText((String)getIntent().getExtras().get(DATE));
+        timeLabel.setText((String)getIntent().getExtras().get(TIME));
+        priceLabel.setText("£ " + (String)getIntent().getExtras().get(PRICE));
     }
 
     public void onBraintreeSubmit(View v) {

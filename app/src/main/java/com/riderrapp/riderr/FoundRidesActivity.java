@@ -190,6 +190,9 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     paymentIntent.putExtra(PaymentActivity.AMOUNT_OF_RATINGS, amtOfRatings);
                                     paymentIntent.putExtra(PaymentActivity.RIDE_ID, rideDataList.get(position).rideId);
                                     paymentIntent.putExtra(PaymentActivity.PRICE, rideDataList.get(position).price);
+                                    paymentIntent.putExtra(PaymentActivity.TIME, rideDataList.get(position).time);
+                                    paymentIntent.putExtra(PaymentActivity.DATE, rideDataList.get(position).date);
+                                    paymentIntent.putExtra(PaymentActivity.DEST, rideDataList.get(position).place);
                                     startActivity(paymentIntent);
 
                                     /*uData.put("passenger", fbuser.getUid());
