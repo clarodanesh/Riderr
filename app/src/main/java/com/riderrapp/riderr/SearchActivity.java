@@ -10,6 +10,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 
@@ -176,6 +177,8 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                         .accessToken(Mapbox.getAccessToken() != null ? Mapbox.getAccessToken() : getString(R.string.access_token))
                         .placeOptions(PlaceOptions.builder()
                                 .backgroundColor(Color.parseColor("#FFFFFF"))
+                                .toolbarColor(ContextCompat.getColor(SearchActivity.this, R.color.colorAccent))
+                                .hint("Tap to Search")
                                 .limit(10)
                                 /*.addInjectedFeature(home)
                                 .addInjectedFeature(work)*/
