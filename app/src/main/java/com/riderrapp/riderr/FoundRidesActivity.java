@@ -25,6 +25,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.braintreepayments.api.dropin.DropInRequest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -38,6 +39,10 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.TextHttpResponseHandler;
+
+import cz.msebera.android.httpclient.Header;
 
 public class FoundRidesActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -57,6 +62,10 @@ public class FoundRidesActivity extends AppCompatActivity {
     private Map<String, Object> uData = new HashMap<>();
 
     private FirebaseAuth mAuth;
+
+    private String cT;
+    final int REQUEST_CODE = 1;
+    AsyncHttpClient client = new AsyncHttpClient();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +102,20 @@ public class FoundRidesActivity extends AppCompatActivity {
             }
         });
 
+        client.get("https://riderr-test.herokuapp.com/checkouts/new", new TextHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, cz.msebera.android.httpclient.Header[] headers, String clientToken) {
+                cT = clientToken;
+                //do this as the client token is returned as a string already then double quoted
+                cT = cT.replace("\"","");
+                System.out.println(cT);
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+
+            }
+        });
     }
 
     @Override
@@ -112,6 +135,16 @@ public class FoundRidesActivity extends AppCompatActivity {
             Toast.makeText(FoundRidesActivity.this, "NO user is signed in.",
                     Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void onBraintreeSubmit(View v) {
+        DropInRequest dropInRequest = new DropInRequest()
+                .clientToken(cT);
+        //these two lines help take out gpay and paypal buttons
+        dropInRequest.disableGooglePayment();
+        dropInRequest.disablePayPal();
+        //dropInRequest.amount("25.00");
+        startActivityForResult(dropInRequest.getIntent(this), REQUEST_CODE);
     }
 
     private void RideDataPrepare() {
@@ -149,7 +182,17 @@ public class FoundRidesActivity extends AppCompatActivity {
                                     //intent.putExtra();
                                     //startActivity(intent);
 
-                                    uData.put("passenger", fbuser.getUid());
+                                    final Intent paymentIntent = new Intent(FoundRidesActivity.this, PaymentActivity.class);
+
+                                    paymentIntent.putExtra(PaymentActivity.LONGITUDE, lng);
+                                    paymentIntent.putExtra(PaymentActivity.LATITUDE, lat);
+                                    paymentIntent.putExtra(PaymentActivity.RATING, rating);
+                                    paymentIntent.putExtra(PaymentActivity.AMOUNT_OF_RATINGS, amtOfRatings);
+                                    paymentIntent.putExtra(PaymentActivity.RIDE_ID, rideDataList.get(position).rideId);
+                                    paymentIntent.putExtra(PaymentActivity.PRICE, rideDataList.get(position).price);
+                                    startActivity(paymentIntent);
+
+                                    /*uData.put("passenger", fbuser.getUid());
                                     uData.put("longitude", lng);
                                     uData.put("latitude", lat);
                                     uData.put("rating", rating);
@@ -180,7 +223,7 @@ public class FoundRidesActivity extends AppCompatActivity {
 
                                     Toast.makeText(FoundRidesActivity.this, "You have joined a ride which will take place on " + rideDataList.get(position).date + " at " + rideDataList.get(position).time,
                                             Toast.LENGTH_LONG).show();
-                                    finish();
+                                    finish();*/
                                 }
                             });
                             for (QueryDocumentSnapshot document : task.getResult()) {
