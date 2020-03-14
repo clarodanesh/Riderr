@@ -5,11 +5,17 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
+import android.util.Log;
 import android.view.View;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -17,6 +23,11 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import android.view.MenuItem;
 
 import com.google.android.material.navigation.NavigationView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -45,14 +56,18 @@ import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SearchActivity extends AppCompatActivity implements View.OnClickListener{
+
+    private static final String TAG = "SearchActivity";
 
     //creating variables for buttons, textview and integers to use
     Button pickDateBtn, pickTimeBtn;
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
-    private String fullDate, fullTime, destination;
+    private String fullDate, fullTime, destination, lng, lat;
 
     //Mapbox places plugin implementation
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
@@ -76,6 +91,8 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
         final Intent FoundRidesIntent = new Intent(this, FoundRidesActivity.class);
 
+        GetUserLocationDetails();
+
         //handle search ride button
         final Button searchRideBtn = (Button) findViewById(R.id.searchRideBtn);
         searchRideBtn.setOnClickListener(new View.OnClickListener() {
@@ -85,10 +102,15 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 EditText searchRideTxtBox = (EditText)findViewById(R.id.searchTxtBox);
 
                 if(IsDataFilled(fullDate, fullTime, destination)) {
-                    FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_PLACE, searchRideTxtBox.getText().toString());
-                    FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_DATE, fullDate);
-                    FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_TIME, fullTime);
-                    startActivity(FoundRidesIntent);
+                    if(IsLocationSet(lng, lat)) {
+                        FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_PLACE, searchRideTxtBox.getText().toString());
+                        FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_DATE, fullDate);
+                        FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_TIME, fullTime);
+                        startActivity(FoundRidesIntent);
+                    }else{
+                        Toast.makeText(SearchActivity.this, "You need to update your location in your profile",
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
                 else{
                     Toast.makeText(SearchActivity.this, "Fill the entire form before trying to submit",
@@ -167,6 +189,39 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                     }, theHour, theMinute, false);
             timePickerDialog.show();
         }
+    }
+
+    private void GetUserLocationDetails(){
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        final String uid = fbuser.getUid();
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        lng = document.getString("longitude");
+                        lat = document.getString("latitude");
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+    }
+
+    private boolean IsLocationSet(String lg, String lt){
+        if(lg == null){
+            return false;
+        }
+        if(lt == null){
+            return false;
+        }
+        return true;
     }
 
     private void InitDestinationSearch() {

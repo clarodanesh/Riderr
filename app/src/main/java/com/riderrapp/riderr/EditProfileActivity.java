@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -30,7 +32,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
 
-public class EditProfileActivity extends AppCompatActivity {
+public class EditProfileActivity extends AppCompatActivity implements ActivityCompat.OnRequestPermissionsResultCallback{
 
     private static final String TAG = "EditProfileActivity";
 
@@ -60,6 +62,23 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     };
 
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grants) {
+        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "Riderr needs to see your location", Toast.LENGTH_SHORT).show();
+            return;
+        }else{
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
+                    1, mLocationListener);
+
+            Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            latToServer = Double.toString(loc.getLatitude());
+            lngToServer = Double.toString(loc.getLongitude());
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,17 +86,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
         final Button saveProfileChangesBtn = (Button) findViewById(R.id.SaveProfileChangesBtn);
         final Button updateLocationBtn = (Button) findViewById(R.id.updateLocationBtn);
-
-        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-            return;
-        }else{
-            // Write you code here if permission already given.
-            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
-                    1, mLocationListener);
-        }
 
         updateLocationBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -87,6 +95,11 @@ public class EditProfileActivity extends AppCompatActivity {
                     ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
                     return;
                 }else{
+                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
+                            1, mLocationListener);
+
                     Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                     latToServer = Double.toString(loc.getLatitude());
                     lngToServer = Double.toString(loc.getLongitude());
@@ -106,6 +119,17 @@ public class EditProfileActivity extends AppCompatActivity {
     public void onStart() {
         super.onStart();
         PopulateDetails();
+
+        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            return;
+        }else{
+            // Write you code here if permission already given.
+            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
+            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
+                    1, mLocationListener);
+        }
     }
 
     private void CheckFirstTimeUser(String fname, String lname){
