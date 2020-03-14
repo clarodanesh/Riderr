@@ -204,6 +204,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 Intent intent = new PlaceAutocomplete.IntentBuilder() //this intent will open the activity that shows search results, will set up as a start activity for result, meaning it will close after result
                         .accessToken(Mapbox.getAccessToken() != null ? Mapbox.getAccessToken() : getString(R.string.access_token))
                         .placeOptions(PlaceOptions.builder()
+                                .backgroundColor(Color.parseColor("#FFFFFF"))
                                 .toolbarColor(ContextCompat.getColor(OfferRideActivity.this, R.color.colorAccent))
                                 .hint("Tap to Search")
                                 .limit(10)
