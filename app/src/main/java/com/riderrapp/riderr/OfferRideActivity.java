@@ -61,6 +61,7 @@ import android.app.TimePickerDialog;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -112,14 +113,14 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 //dateText.setText(fullDate);
 
                 //send the data for the ride from here
-                if(IsDataFilled(fullDate, fullTime, destination)){
+                if(IsDataCorrect(fullDate, fullTime, destination)){
                     StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
                     Toast.makeText(OfferRideActivity.this, "Your ride is now active",
                             Toast.LENGTH_LONG).show();
                     finish();
                 }
                 else{
-                    Toast.makeText(OfferRideActivity.this, "Fill the entire form before trying to submit",
+                    Toast.makeText(OfferRideActivity.this, "Fill the form properly before trying to submit.",
                             Toast.LENGTH_LONG).show();
                 }
             }
@@ -276,8 +277,106 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         }
     }
 
-    private boolean IsDataFilled(String d, String t, String dest){
-        if(d == "" || d.isEmpty()){
+    private boolean IsDateFuture(String date){
+        Date c = Calendar.getInstance().getTime();
+        System.out.println("Current time => " + c);
+
+        SimpleDateFormat df = new SimpleDateFormat("d/M/yyyy");
+        String formattedDate = df.format(c);
+        String[] fDate = formattedDate.split("/");
+
+        String[] usdArray = date.split("/");
+        int userYear = Integer.parseInt(usdArray[2]);
+        int userMonth = Integer.parseInt(usdArray[1]);
+        int userDay = Integer.parseInt(usdArray[0]);
+        int currYear = Integer.parseInt(fDate[2]);
+        int currMonth = Integer.parseInt(fDate[1]);
+        int currDay = Integer.parseInt(fDate[0]);
+
+        if(userYear >= currYear){
+            //echo '<br>first<br>';
+            //echo $currDateints[0];
+            if(userMonth >= currMonth){
+                //echo '<br>second<br>';
+                //echo $currDateints[1];
+                if(userDay >= currDay){
+                    //echo '<br>third<br>';
+                    //echo $currDateints[2];
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+
+    }
+
+    private boolean IsDateToday(String date){
+        Date c = Calendar.getInstance().getTime();
+        System.out.println("Current time => " + c);
+
+        SimpleDateFormat df = new SimpleDateFormat("d/M/yyyy");
+        String formattedDate = df.format(c);
+        String[] fDate = formattedDate.split("/");
+
+        String[] usdArray = date.split("/");
+        int userYear = Integer.parseInt(usdArray[2]);
+        int userMonth = Integer.parseInt(usdArray[1]);
+        int userDay = Integer.parseInt(usdArray[0]);
+        int currYear = Integer.parseInt(fDate[2]);
+        int currMonth = Integer.parseInt(fDate[1]);
+        int currDay = Integer.parseInt(fDate[0]);
+
+        if(userYear == currYear){
+            //echo '<br>first<br>';
+            //echo $currDateints[0];
+            if(userMonth == currMonth){
+                //echo '<br>second<br>';
+                //echo $currDateints[1];
+                if(userDay == currDay){
+                    //echo '<br>third<br>';
+                    //echo $currDateints[2];
+                    return true;
+                }else{
+                    return false;
+                }
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+
+    }
+
+    private boolean IsTimeFuture(String time) {
+        int currHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+        int currMin = Calendar.getInstance().get(Calendar.MINUTE);
+        System.out.println("time_format" + String.format("%02d:%02d", currHour, currMin));
+
+        String[] ustArray = time.split(":");
+        int userMinute = Integer.parseInt(ustArray[1]);
+        int userHour = Integer.parseInt(ustArray[0]);
+
+        if(userHour >= currHour){
+            //echo '<br>first<br>';
+            //echo $currDateints[0];
+            if(userMinute >= currMin){
+                return true;
+            }else{
+                return false;
+            }
+        }else{
+            return false;
+        }
+    }
+
+    private boolean IsDataCorrect(String d, String t, String dest){
+        if(d == "" || d.isEmpty() || !IsDateFuture(d)){
             return false;
         }
         if(t == "" || t.isEmpty()){
@@ -285,6 +384,11 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         }
         if(dest == "" || dest.isEmpty()){
             return false;
+        }
+        if(IsDateToday(d)){
+            if(!IsTimeFuture(t)){
+                return false;
+            }
         }
         return true;
     }
