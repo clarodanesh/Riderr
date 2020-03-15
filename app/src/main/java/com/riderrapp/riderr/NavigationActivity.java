@@ -225,8 +225,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     @Override
     public void onCancelNavigation() {
         // Navigation canceled, finish the activity
-        //showDidFinishDialog();
-        showRatingDialog();
+        finish();
+        //showRatingDialog();
         //finish();
     }
 
@@ -318,25 +318,6 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             }
         });
 
-        alertDialog.show();
-    }
-
-    private void showDidFinishDialog() {
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Did the ride come to an end? (Clicking yes will remove access to this ride.)");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"YES",new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int in) {
-                //finish();
-            }
-        });
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"NO",new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int in) {
-                finish();
-            }
-        });
-        alertDialog.setCanceledOnTouchOutside(false);
         alertDialog.show();
     }
 
@@ -514,8 +495,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         options.directionsRoute(directionsRoute)
                 .navigationListener(this)
                 .progressChangeListener(this)
-                .routeListener(this)
-                .shouldSimulateRoute(true);
+                .routeListener(this);
+                //.shouldSimulateRoute(true);
         return options.build();
     }
 

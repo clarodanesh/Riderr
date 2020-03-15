@@ -464,7 +464,7 @@ public class MainActivity extends AppCompatActivity
         final EditText input = new EditText(this);
 
         AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Rate your driver (0-5)");
+        alertDialog.setMessage("Rate your Passengers (0-5)");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int in) {
@@ -524,7 +524,7 @@ public class MainActivity extends AppCompatActivity
                                                                     @Override
                                                                     public void onSuccess(Void aVoid) {
                                                                         Log.d(TAG, "USER RATINGS UPDATED");
-                                                                        DeleteRideFromUser(db, rideType);
+                                                                        //DeleteRideFromUser(db, rideType);
                                                                     }
                                                                 })
                                                                 .addOnFailureListener(new OnFailureListener() {
@@ -543,6 +543,7 @@ public class MainActivity extends AppCompatActivity
                                         });
 
                                     }
+                                    DeleteRideFromUser(db, rideType);
                                 } else {
                                     Log.d(TAG, "No such document");
                                 }
@@ -581,7 +582,7 @@ public class MainActivity extends AppCompatActivity
         final EditText input = new EditText(this);
 
         AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Rate your driver (0-5)");
+        alertDialog.setMessage("Rate your Driver (0-5)");
         alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int in) {
