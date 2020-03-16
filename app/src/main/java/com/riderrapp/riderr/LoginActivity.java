@@ -109,7 +109,13 @@ public class LoginActivity extends AppCompatActivity {
         //updateUI(currentUser);*/
     }
 
+    static boolean IsEmailValid(String emailToCheck) {
+        String regularExpression = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+        return emailToCheck.matches(regularExpression);
+    }
+
     public void DoFirebaseLogin(String e, String p){
+        if(e.contains(".ac.uk") && IsEmailValid(e) && p.length() > 7) {
         mAuth.signInWithEmailAndPassword(e, p)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -126,7 +132,7 @@ public class LoginActivity extends AppCompatActivity {
                         } else {
                             // If sign in fails, display a message to the user.
                             //Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(LoginActivity.this, "Authentication failed.",
+                            Toast.makeText(LoginActivity.this, "The details you entered are incorrect.",
                                     Toast.LENGTH_SHORT).show();
                             updateUI(null);
                         }
@@ -134,6 +140,10 @@ public class LoginActivity extends AppCompatActivity {
                         // ...
                     }
                 });
+        }else{
+            Toast.makeText(LoginActivity.this, "The details you entered are incorrect.",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void updateUI(FirebaseUser user) {

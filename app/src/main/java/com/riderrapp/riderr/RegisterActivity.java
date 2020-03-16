@@ -118,28 +118,45 @@ public class RegisterActivity extends AppCompatActivity {
         //updateUI(currentUser);*/
     }
 
+    static boolean IsEmailValid(String emailToCheck) {
+        String regularExpression = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
+        return emailToCheck.matches(regularExpression);
+    }
+
     public void register(final String e, final String p){
-        mAuth.createUserWithEmailAndPassword(e, p)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "createUserWithEmail:success");
-                            System.out.println("task success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            TryLogin(e, p);
-                            updateUI(user);
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            //Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            System.out.println("task fail");
-                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
-                    }
-                });
+        if(e.contains(".ac.uk") && IsEmailValid(e)) {
+            if(p.length() > 7) {
+                mAuth.createUserWithEmailAndPassword(e, p)
+                        .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    // Sign in success, update UI with the signed-in user's information
+                                    //Log.d(TAG, "createUserWithEmail:success");
+                                    System.out.println("task success");
+                                    FirebaseUser user = mAuth.getCurrentUser();
+                                    TryLogin(e, p);
+                                    Toast.makeText(RegisterActivity.this, "Registration successful.",
+                                            Toast.LENGTH_SHORT).show();
+                                    updateUI(user);
+                                } else {
+                                    // If sign in fails, display a message to the user.
+                                    //Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                                    System.out.println("task fail");
+                                    Toast.makeText(RegisterActivity.this, "Authentication failed. Try again.",
+                                            Toast.LENGTH_SHORT).show();
+                                    updateUI(null);
+                                }
+                            }
+                        });
+            }else{
+                Toast.makeText(RegisterActivity.this, "Your password must be longer than 7 characters.",
+                        Toast.LENGTH_LONG).show();
+            }
+        }else{
+            Toast.makeText(RegisterActivity.this, "Your email needs to be a valid .ac.uk email.",
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     private void updateUI(FirebaseUser user) {
@@ -173,13 +190,13 @@ public class RegisterActivity extends AppCompatActivity {
                             //updateUI(user);
                             CreateUser();
                             AttemptLoginOpen(user);
-                            Toast.makeText(RegisterActivity.this, "Authentication SUCCESS.",
-                                    Toast.LENGTH_SHORT).show();
+                            /*Toast.makeText(RegisterActivity.this, "Authentication SUCCESS.",
+                                    Toast.LENGTH_SHORT).show();*/
                         } else {
                             // If sign in fails, display a message to the user.
                             //Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
+                            /*Toast.makeText(RegisterActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();*/
                             //updateUI(null);
                         }
 
