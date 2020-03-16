@@ -159,8 +159,8 @@ public class ProfileActivity extends AppCompatActivity {
                                 carMakeLabel.setText(document.getString("car-make"));
                                 carRegLabel.setText(document.getString("registration-no"));
                                 String rCapString;
-                                if(document.get("rating") == null){
-                                    rCapString = "N/A";
+                                if(document.getLong("rating") == -1){
+                                    rCapString = "NA";
                                     ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.black_overlay));
                                     ratingCaption.setText(rCapString);
                                 }else{

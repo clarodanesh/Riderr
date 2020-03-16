@@ -90,7 +90,8 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
     private double longitude, latitude;
     private int vehicleCapacity;
     private String rprice;
-    private String p, d;
+    private String p, d, carMake, carReg, carPrice;
+    private long carSeats;
 
 
     //String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap
@@ -118,6 +119,10 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
 
                         p = document.getString("p-ride");
                         d = document.getString("d-ride");
+                        carMake = document.getString("car-make");
+                        carReg = document.getString("registration-no");
+                        carSeats = document.getLong("seats-no");
+                        carPrice = document.getString("ride-price");
                     } else {
                         Log.d(TAG, "No such document");
                     }
@@ -137,7 +142,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 //dateText.setText(fullDate);
 
                 //send the data for the ride from here
-                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide()){
+                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide() && CarDetailsSet()){
                     StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
                     Toast.makeText(OfferRideActivity.this, "Your ride is now active",
                             Toast.LENGTH_LONG).show();
@@ -329,15 +334,31 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                     //echo $currDateints[2];
                     return true;
                 }else{
+                    Toast.makeText(OfferRideActivity.this, "The date you selected has passed.",
+                            Toast.LENGTH_LONG).show();
                     return false;
                 }
             }else{
+                Toast.makeText(OfferRideActivity.this, "The date you selected has passed.",
+                        Toast.LENGTH_LONG).show();
                 return false;
             }
         }else{
+            Toast.makeText(OfferRideActivity.this, "The date you selected has passed.",
+                    Toast.LENGTH_LONG).show();
             return false;
         }
 
+    }
+
+    private boolean CarDetailsSet(){
+        if(carMake != "" && carPrice != "" && carReg != ""  && carSeats != 0){
+            return true;
+        }else{
+            Toast.makeText(OfferRideActivity.this, "You need to fill in your car details to offer rides.",
+                    Toast.LENGTH_LONG).show();
+            return false;
+        }
     }
 
     private boolean IsDateToday(String date){
@@ -387,15 +408,19 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         int userMinute = Integer.parseInt(ustArray[1]);
         int userHour = Integer.parseInt(ustArray[0]);
 
-        if(userHour >= currHour){
+        if(userHour > currHour){
             //echo '<br>first<br>';
             //echo $currDateints[0];
-            if(userMinute >= currMin){
+            if(userMinute > currMin){
                 return true;
             }else{
+                Toast.makeText(OfferRideActivity.this, "This time has passed.",
+                        Toast.LENGTH_LONG).show();
                 return false;
             }
         }else{
+            Toast.makeText(OfferRideActivity.this, "This time has passed.",
+                    Toast.LENGTH_LONG).show();
             return false;
         }
     }

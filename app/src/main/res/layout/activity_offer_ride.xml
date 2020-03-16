@@ -99,7 +99,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Set a time"
+        android:text="Set arrival time"
         android:textSize="24sp"
         app:layout_constraintBottom_toTopOf="@+id/offerRideBtn"
         app:layout_constraintEnd_toEndOf="parent"
