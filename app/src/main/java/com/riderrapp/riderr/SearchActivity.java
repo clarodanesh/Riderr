@@ -69,6 +69,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
     private String fullDate, fullTime, destination, lng, lat;
+    private String p, d;
 
     //Mapbox places plugin implementation
     private static final int REQUEST_CODE_AUTOCOMPLETE = 1;
@@ -94,6 +95,30 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
 
         GetUserLocationDetails();
 
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = fbuser.getUid();
+
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
+
+                        p = document.getString("p-ride");
+                        d = document.getString("d-ride");
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+
         //handle search ride button
         final Button searchRideBtn = (Button) findViewById(R.id.searchRideBtn);
         searchRideBtn.setOnClickListener(new View.OnClickListener() {
@@ -102,7 +127,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                 //startActivity(intent);
                 EditText searchRideTxtBox = (EditText)findViewById(R.id.searchTxtBox);
 
-                if(IsDataCorrect(fullDate, fullTime, destination)) {
+                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide()) {
                     if(IsLocationSet(lng, lat)) {
                         FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_PLACE, searchRideTxtBox.getText().toString());
                         FoundRidesIntent.putExtra(FoundRidesActivity.SEARCH_DATE, fullDate);
@@ -190,6 +215,21 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                     }, theHour, theMinute, false);
             timePickerDialog.show();
         }
+    }
+
+    private boolean UserHasRide(){
+        if(p == null && d == null){
+            return false;
+        } else if (p == null && d != null) {
+            Toast.makeText(SearchActivity.this, "You already have a Driver ride set.",
+                    Toast.LENGTH_LONG).show();
+            return true;
+        }else if(d == null && p != null){
+            Toast.makeText(SearchActivity.this, "You already have a Passenger ride set.",
+                    Toast.LENGTH_LONG).show();
+            return true;
+        }
+        return false;
     }
 
     private boolean IsDateFuture(String date){

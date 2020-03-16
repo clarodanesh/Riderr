@@ -90,6 +90,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
     private double longitude, latitude;
     private int vehicleCapacity;
     private String rprice;
+    private String p, d;
 
 
     //String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap
@@ -102,6 +103,29 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         actionBar.setDisplayHomeAsUpEnabled(true);
         Mapbox.getInstance(this, getString(R.string.access_token));
 
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = fbuser.getUid();
+
+        DocumentReference docRef = db.collection("users").document(uid);
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
+
+                        p = document.getString("p-ride");
+                        d = document.getString("d-ride");
+                    } else {
+                        Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
 
         final Button offerRideBtn = (Button) findViewById(R.id.offerRideBtn);
         offerRideBtn.setOnClickListener(new View.OnClickListener() {
@@ -113,7 +137,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                 //dateText.setText(fullDate);
 
                 //send the data for the ride from here
-                if(IsDataCorrect(fullDate, fullTime, destination)){
+                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide()){
                     StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
                     Toast.makeText(OfferRideActivity.this, "Your ride is now active",
                             Toast.LENGTH_LONG).show();
@@ -374,6 +398,21 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
         }else{
             return false;
         }
+    }
+
+    private boolean UserHasRide(){
+        if(p == null && d == null){
+            return false;
+        } else if (p == null && d != null) {
+            Toast.makeText(OfferRideActivity.this, "You already have a Driver ride set.",
+                    Toast.LENGTH_LONG).show();
+            return true;
+        }else if(d == null && p != null){
+            Toast.makeText(OfferRideActivity.this, "You already have a Passenger ride set.",
+                    Toast.LENGTH_LONG).show();
+            return true;
+        }
+        return false;
     }
 
     private boolean IsDataCorrect(String d, String t, String dest){
