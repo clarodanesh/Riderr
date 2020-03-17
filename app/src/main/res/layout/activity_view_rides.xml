@@ -168,6 +168,7 @@
             android:layout_marginBottom="30dp"
             android:backgroundTint="@color/metallicGold"
             android:text="Cancel Ride"
+            android:visibility="gone"
             android:textColor="@color/colorPrimary"
             app:layout_constraintBottom_toTopOf="@+id/searchButton"
             app:layout_constraintEnd_toEndOf="parent"

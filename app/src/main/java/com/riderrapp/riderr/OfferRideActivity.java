@@ -330,7 +330,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
             if(userMonth >= currMonth){
                 //echo '<br>second<br>';
                 //echo $currDateints[1];
-                if(userDay >= currDay){
+                if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay)){
                     //echo '<br>third<br>';
                     //echo $currDateints[2];
                     return true;

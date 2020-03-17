@@ -226,12 +226,15 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
                         if(dride != null) {
                             button.setVisibility(View.VISIBLE);
+                            cancelRideBtn.setVisibility(View.VISIBLE);
                             SetRide(style, dride);
                         }else if(pride != null){
                             button.setVisibility(View.GONE);
+                            cancelRideBtn.setVisibility(View.VISIBLE);
                             SetRide(style, pride);
                         }else{
                             button.setVisibility(View.GONE);
+                            cancelRideBtn.setVisibility(View.GONE);
                         }
 
 
