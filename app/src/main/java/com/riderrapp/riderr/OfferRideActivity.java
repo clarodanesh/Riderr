@@ -237,6 +237,7 @@ public class OfferRideActivity extends AppCompatActivity implements View.OnClick
                                 .toolbarColor(ContextCompat.getColor(OfferRideActivity.this, R.color.colorAccent))
                                 .hint("Tap to Search")
                                 .limit(10)
+                                .country("GB")
                                 /*.addInjectedFeature(home)
                                 .addInjectedFeature(work)*/
                                 .build(PlaceOptions.MODE_FULLSCREEN))

@@ -374,6 +374,7 @@ public class SearchActivity extends AppCompatActivity implements View.OnClickLis
                                 .toolbarColor(ContextCompat.getColor(SearchActivity.this, R.color.colorAccent))
                                 .hint("Tap to Search")
                                 .limit(10)
+                                .country("GB") //ISO 3166 alpha 2 country codes separated by commas
                                 /*.addInjectedFeature(home)
                                 .addInjectedFeature(work)*/
                                 .build(PlaceOptions.MODE_FULLSCREEN))

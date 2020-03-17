@@ -6,6 +6,8 @@ import android.os.Build;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -25,6 +27,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
@@ -88,7 +91,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacem
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 
 
-public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCallback, MapboxMap.OnMapClickListener, PermissionsListener {
+public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
     // variables for adding location layer
     private MapView mapView;
     private MapboxMap mapboxMap;
@@ -100,7 +103,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     private static final String TAG = "ViewRidesActivity";
     private NavigationMapRoute navigationMapRoute;
     // variables needed to initialize navigation
-    private Button button;
+    private Button button, cancelRideBtn;
 
     private double lat = 0, lng = 0;
     private String pride = "", dride = "";
@@ -108,6 +111,10 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     private List<Point> wayPoints = new ArrayList<>();
     private Map<String, Object> cData = new HashMap<>();
     private Map<String, String> uData = new HashMap<>();
+    private Map<String, Object> qData = new HashMap<>();
+
+    private Map<String, Object> aData = new HashMap<>();
+    private Map<String, String> dData = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -136,11 +143,11 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
                 //addDestinationIconSymbolLayer(style);
 
-                mapboxMap.addOnMapClickListener(ViewRidesActivity.this);
-
                 GetUserRide(style, db, uid);
 
                 button = findViewById(R.id.startNavButton);
+                cancelRideBtn = findViewById(R.id.cancelRideButton);
+
                 button.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -156,6 +163,13 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                         intent.putExtra(NavigationActivity.RIDE_ID, dride);
 
                         startActivity(intent);
+                    }
+                });
+
+                cancelRideBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        CancelRide();
                     }
                 });
 
@@ -223,6 +237,131 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
                     } else {
                         Log.d(TAG, "No such document");
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            }
+        });
+    }
+
+    private void CancelRide(){
+        final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+        final FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        DocumentReference docRef = db.collection("users").document(fbuser.getUid());
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        if(dride != null){
+                            db.collection("OfferedRides").document(dride)
+                                    .delete()
+                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            Map<String, Object> user = new HashMap<>();
+                                            user.put("d-ride", null);
+                                            db.collection("users").document(fbuser.getUid())
+                                                    .update(user)
+                                                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                        @Override
+                                                        public void onSuccess(Void aVoid) {
+                                                            Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                            finish();
+                                                        }
+                                                    })
+                                                    .addOnFailureListener(new OnFailureListener() {
+                                                        @Override
+                                                        public void onFailure(@NonNull Exception e) {
+                                                            Log.w(TAG, "Error writing document", e);
+                                                        }
+                                                    });
+                                        }
+                                    })
+                                    .addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            Log.w(TAG, "Error deleting document", e);
+                                        }
+                                    });
+                        }
+                        if(pride != null){
+                            DocumentReference docRef = db.collection("OfferedRides").document(pride);
+                            final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                    if (task.isSuccessful()) {
+                                        DocumentSnapshot document = task.getResult();
+                                        if (document.exists()) {
+                                            aData = document.getData();
+                                            Log.d(TAG, "Danesh");
+                                            List<Map> d = (List<Map>) aData.get("passengers");
+                                            for(int i = 0; i < d.size(); i++){
+                                                dData = d.get(i);
+                                                if(dData.get("passenger").equals(fbuser.getUid())) {
+                                                    System.out.println("trophy " + dData.get("longitude"));
+                                                    String s = dData.get("longitude");
+                                                    String st = dData.get("latitude");
+
+                                                    qData.put("passenger", fbuser.getUid());
+                                                    qData.put("longitude", s);
+                                                    qData.put("latitude", st);
+                                                    qData.put("rating", dData.get("rating"));
+                                                    qData.put("amountOfRatings", dData.get("amountOfRatings"));
+
+                                                    DocumentReference selectedRideRef = db.collection("OfferedRides").document(pride);
+                                                    selectedRideRef.update("passengers", FieldValue.arrayRemove(qData));
+                                                    selectedRideRef.update("vehicleCapacity", FieldValue.increment(1));
+                                                    Map<String, Object> user = new HashMap<>();
+                                                    user.put("p-ride", null);
+                                                    db.collection("users").document(fbuser.getUid())
+                                                            .update(user)
+                                                            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                                @Override
+                                                                public void onSuccess(Void aVoid) {
+                                                                    Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                                    finish();
+                                                                }
+                                                            })
+                                                            .addOnFailureListener(new OnFailureListener() {
+                                                                @Override
+                                                                public void onFailure(@NonNull Exception e) {
+                                                                    Log.w(TAG, "Error writing document", e);
+                                                                }
+                                                            });
+                                                }
+                                            }
+                                        } else {
+                                            Log.d(TAG, "No such document");
+                                        }
+                                    } else {
+                                        Log.d(TAG, "get failed with ", task.getException());
+                                    }
+                                }
+                            });
+
+
+                            /*final FirebaseFirestore db = FirebaseFirestore.getInstance();
+                            final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                            String uid = fbuser.getUid();
+
+                            qData.put("passenger", fbuser.getUid());
+                            qData.put("longitude", "-2.47694282411936");
+                            qData.put("latitude", "53.755799976191845");
+                            qData.put("rating", 3);
+                            qData.put("amountOfRatings", 2);
+
+                            //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
+                            DocumentReference selectedRideRef = db.collection("OfferedRides").document(pride);
+                            selectedRideRef.update("passengers", FieldValue.arrayRemove(qData));
+                            selectedRideRef.update("vehicleCapacity", FieldValue.increment(1));*/
+                        }
+                    } else {
+                        Log.d(TAG, "No such document set ride");
                     }
                 } else {
                     Log.d(TAG, "get failed with ", task.getException());
@@ -305,25 +444,6 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 iconIgnorePlacement(true)
         );
         loadedMapStyle.addLayer(destinationSymbolLayer);
-    }
-
-    @SuppressWarnings( {"MissingPermission"})
-    @Override
-    public boolean onMapClick(@NonNull LatLng point) {
-
-        /*Point destinationPoint = Point.fromLngLat(point.getLongitude(), point.getLatitude());
-        Point originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
-                locationComponent.getLastKnownLocation().getLatitude());
-
-        GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
-        if (source != null) {
-            source.setGeoJson(Feature.fromGeometry(destinationPoint));
-        }
-
-        getRoute(originPoint, destinationPoint);
-        button.setEnabled(true);
-        button.setBackgroundResource(R.color.design_default_color_primary_dark);*/
-        return true;
     }
 
     private Long ConvertSecondsToMinutes(Double secs){

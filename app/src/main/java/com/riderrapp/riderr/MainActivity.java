@@ -336,6 +336,7 @@ public class MainActivity extends AppCompatActivity
                         }
                     } else {
                         Log.d(TAG, "No such document set ride");
+                        ShowRideCancelledDialog();
                     }
                 } else {
                     Log.d(TAG, "get failed with ", task.getException());
@@ -458,6 +459,37 @@ public class MainActivity extends AppCompatActivity
                         Log.w(TAG, "Error writing document", e);
                     }
                 });
+    }
+
+    private void ShowRideCancelledDialog(){
+        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        alertDialog.setMessage("Your previous ride was cancelled");
+        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK",new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int in) {
+                final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
+                final FirebaseFirestore db = FirebaseFirestore.getInstance();
+                Map<String, Object> user = new HashMap<>();
+                user.put("p-ride", null);
+                db.collection("users").document(fbuser.getUid())
+                        .update(user)
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Log.d(TAG, "DocumentSnapshot successfully written!");
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Log.w(TAG, "Error writing document", e);
+                            }
+                        });
+            }
+        });
+
+        alertDialog.setCancelable(false);
+        alertDialog.show();
     }
 
     private void showDriverRatingDialog(final String rid, final String rideType) {

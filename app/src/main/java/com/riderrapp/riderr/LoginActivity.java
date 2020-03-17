@@ -115,7 +115,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void DoFirebaseLogin(String e, String p){
-        if(e.contains(".ac.uk") && IsEmailValid(e) && p.length() > 7) {
+        if(/*e.contains(".ac.uk") &&*/ IsEmailValid(e) && p.length() > 7) {
         mAuth.signInWithEmailAndPassword(e, p)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
