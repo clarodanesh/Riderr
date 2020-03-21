@@ -9,7 +9,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
 import android.util.Log;
@@ -18,7 +17,6 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SearchView;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -31,7 +29,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -52,13 +49,11 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.view.Menu;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import androidx.cardview.widget.CardView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
@@ -66,53 +61,45 @@ import java.util.Map;
 
 import timber.log.Timber;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = "MainActivity";
 
-    private MapView mainMapView;
-    private SymbolManager symbolManager;
-    private Symbol symbol;
-    private static final String ID_ICON_MARKER = "marker";
+    private MapView mainActivityMap;
+    private SymbolManager mapMarkerManager;
+    private Symbol mapMarkerSymbol;
+    private static final String MARKER_ID = "marker";
     private double lat = 0, lng = 0;
     private String pride = "", dride = "";
     private boolean rideComplete;
 
-    private Map<String, Object> cData = new HashMap<>();
-    private Map<String, String> uData = new HashMap<>();
-    private Map<String, Long> lData = new HashMap<>();
+    private Map<String, Object> rideDataObjectsMap = new HashMap<>();
+    private Map<String, String> passengerDataStringMap = new HashMap<>();
+    private Map<String, Long> passengerDataLongMap = new HashMap<>();
+
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
         Mapbox.getInstance(this, "pk.eyJ1IjoiZGlxYmFsIiwiYSI6ImNqdzZtMzQ3czAxZXYzem83eTY4NWpua2kifQ.clrFPQXs0E70rz9R4H292w");
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        /*FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
+        Toolbar mainActivityToolbar = findViewById(R.id.mainActivityToolbar);
+        setSupportActionBar(mainActivityToolbar);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-        navigationView.setNavigationItemSelectedListener(this);
+        DrawerLayout navDrawer = findViewById(R.id.mainActivityNavDrawerLayout);
+        NavigationView navDrawerView = findViewById(R.id.navDrawerView);
+        ActionBarDrawerToggle navDrawerToggler = new ActionBarDrawerToggle(this, navDrawer, mainActivityToolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        navDrawer.addDrawerListener(navDrawerToggler);
+        navDrawerToggler.syncState();
+        navDrawerView.setNavigationItemSelectedListener(this);
 
         final Intent searchIntent = new Intent(this, SearchActivity.class);
         Button searchButton = (Button) findViewById(R.id.searchButton);
         searchButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Code here executes on main thread after user presses button
                 startActivity(searchIntent);
             }
         });
@@ -121,92 +108,43 @@ public class MainActivity extends AppCompatActivity
         Button offerRideButton = (Button) findViewById(R.id.offerRideButton);
         offerRideButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Code here executes on main thread after user presses button
                 startActivity(offerRideIntent);
             }
         });
 
-        /*Button viewRideButton = (Button) findViewById(R.id.viewRideButton);
-        viewRideButton.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                // Code here executes on main thread after user presses button
-                new AlertDialog.Builder(v.getContext()).setMessage("You have no Rides").show();
-            }
-        });*/
-
-        //TAKING THE CARD VIEW ON CLICK LISTENER OUT
-        /*CardView card_view = (CardView) findViewById(R.id.card_view); // creating a CardView and assigning a value.
-        card_view.setOnClickListener(new View.OnClickListener() {
+        mainActivityMap = findViewById(R.id.activeRideMapView);
+        mainActivityMap.onCreate(instanceState);
+        mainActivityMap.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onClick(View v) {
-                // do whatever you want to do on click (to launch any fragment or activity you need to put intent here.)
-                //if(journey is not set then dont navigate anywhere)
-                //else if(journey is driver journey, navigate to driver journey activity with start navigation button)
-                //else if(journey is riderr journey, navigate to riderr journey activity  with showing route on map and times)
-                new AlertDialog.Builder(v.getContext()).setMessage("You have no Rides").show();
-
-                //taken out here
-                AlertDialog.Builder dialog = new AlertDialog.Builder(MainActivity.this);
-                dialog.setCancelable(false);
-                dialog.setTitle("Dialog on Android");
-                dialog.setMessage("Are you sure you want to delete this entry?" );
-                dialog.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            public void onMapReady(@NonNull final MapboxMap readyMap) {
+                readyMap.getUiSettings().setAllGesturesEnabled(false);
+                readyMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
                     @Override
-                    public void onClick(DialogInterface dialog, int id) {
-                        //Action for "Delete".
-                    }
-                })
-                        .setNegativeButton("Cancel ", new DialogInterface.OnClickListener() {
+                    public void onStyleLoaded(@NonNull final Style loadedStyle) {
+                        String uid = currUser.getUid();
+
+                        DocumentReference usersReference = dataStore.collection("users").document(uid);
+                        usersReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                             @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                //Action for "Cancel".
-                            }
-                        });
-
-                final AlertDialog alert = dialog.create();
-                alert.show();
-                //taken out here
-            }
-        });*/
-
-        mainMapView = findViewById(R.id.mapView);
-        mainMapView.onCreate(savedInstanceState);
-        mainMapView.getMapAsync(new OnMapReadyCallback() {
-            @Override
-            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
-                mapboxMap.setStyle(Style.MAPBOX_STREETS, new Style.OnStyleLoaded() {
-                    @Override
-                    public void onStyleLoaded(@NonNull final Style style) {
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                        String uid = fbuser.getUid();
-
-                        DocumentReference docRef = db.collection("users").document(uid);
-                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        pride = document.getString("p-ride");
-                                        //dride = document.getLong("longitude");
-                                        dride = document.getString("d-ride");
+                            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                                if (returnedTask.isSuccessful()) {
+                                    DocumentSnapshot userDocument = returnedTask.getResult();
+                                    if (userDocument.exists()) {
+                                        pride = userDocument.getString("p-ride");
+                                        dride = userDocument.getString("d-ride");
 
                                         if(dride != null) {
-                                            SetRide(style, mapboxMap, dride, "driver");
+                                            SetRide(loadedStyle, readyMap, dride, "driver");
                                         }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride, "passenger");
+                                            SetRide(loadedStyle, readyMap, pride, "passenger");
                                         }else{
-
+                                            Log.d(TAG, "Carry on no rides !!!");
                                         }
-
-
                                     } else {
-                                        Log.d(TAG, "No such document");
+                                        Log.d(TAG, "No ride found");
                                     }
                                 } else {
-                                    Log.d(TAG, "get failed with ", task.getException());
+                                    Log.d(TAG, "Exception: ", returnedTask.getException());
                                 }
                             }
                         });
@@ -217,160 +155,136 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
+    public boolean onNavigationItemSelected(MenuItem navItem) {
+        int navItemId = navItem.getItemId();
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-        if (id == R.id.nav_far) {
+        if (navItemId == R.id.nav_far) {
             final Intent searchIntent = new Intent(this, SearchActivity.class);
             startActivity(searchIntent);
             return true;
-        } else if (id == R.id.nav_oar) {
+        } else if (navItemId == R.id.nav_oar) {
             final Intent offerRideIntent = new Intent(this, OfferRideActivity.class);
             startActivity(offerRideIntent);
             return true;
-        } else if (id == R.id.nav_vr) {
+        } else if (navItemId == R.id.nav_vr) {
             final Intent viewRidesIntent = new Intent(this, ViewRidesActivity.class);
             startActivity(viewRidesIntent);
             return true;
-        } else if (id == R.id.nav_profile) {
+        } else if (navItemId == R.id.nav_profile) {
             final Intent profileIntent = new Intent(this, ProfileActivity.class);
             startActivity(profileIntent);
             return true;
-        } else if (id == R.id.nav_logout) {
-            //final Intent splashIntent = new Intent(this, SplashActivity.class);
-            //startActivity(splashIntent);
+        } else if (navItemId == R.id.nav_logout) {
             FirebaseAuth.getInstance().signOut();
             finish();
             return true;
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        DrawerLayout navDrawer = findViewById(R.id.mainActivityNavDrawerLayout);
+        navDrawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-    private void SetRide(final Style style, final MapboxMap mapboxMap, final String rideid, final String rideType){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    private void SetRide(final Style loadedStyle, final MapboxMap readyMap, final String rideid, final String rideType){
+        DocumentReference rideRef = dataStore.collection("OfferedRides").document(rideid);
+        rideRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        lat = document.getDouble("latitude");
-                        //dride = document.getLong("longitude");
-                        lng = document.getDouble("longitude");
-                        rideComplete = document.getBoolean("completed");
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot rideDoc = returnedTask.getResult();
+                    if (rideDoc.exists()) {
+                        lat = rideDoc.getDouble("latitude");
+                        lng = rideDoc.getDouble("longitude");
+                        rideComplete = rideDoc.getBoolean("completed");
 
                         if(rideComplete && rideType.equals("driver")){
                             showDriverRatingDialog(rideid, rideType);
                         }else if(rideComplete && rideType.equals("passenger")){
                             showPassRatingDialog(rideid, rideType);
                         }else {
-                            AddAnnotationMarkerToStyle(style);
-                            // create symbol manager
-                            GeoJsonOptions geoJsonOptions = new GeoJsonOptions().withTolerance(0.4f);
-                            symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
-                            symbolManager.deleteAll();
+                            InsertMarkerToStyle(loadedStyle);
 
-                            symbolManager = new SymbolManager(mainMapView, mapboxMap, style, null, geoJsonOptions);
+                            // create symbol manager
+                            GeoJsonOptions gjOptions = new GeoJsonOptions().withTolerance(0.4f);
+                            mapMarkerManager = new SymbolManager(mainActivityMap, readyMap, loadedStyle, null, gjOptions);
+                            mapMarkerManager.deleteAll();
+
+                            mapMarkerManager = new SymbolManager(mainActivityMap, readyMap, loadedStyle, null, gjOptions);
                             // set non data driven properties
-                            symbolManager.setIconAllowOverlap(true);
-                            symbolManager.setTextAllowOverlap(true);
+                            mapMarkerManager.setIconAllowOverlap(true);
+                            mapMarkerManager.setTextAllowOverlap(true);
 
                             // create a symbol
-                            SymbolOptions symbolOptions = new SymbolOptions()
+                            SymbolOptions mapMarkerSymbolOptions = new SymbolOptions()
                                     .withLatLng(new LatLng(lat, lng))
-                                    .withIconImage(ID_ICON_MARKER)
-                                    .withIconSize(1f)
-                                    .withSymbolSortKey(10.0f);
-                            //.withDraggable(true);
-                            symbol = symbolManager.create(symbolOptions);
-                            Timber.e(symbol.toString());
+                                    .withSymbolSortKey(10.0f)
+                                    .withIconImage(MARKER_ID)
+                                    .withIconSize(1f);
 
-                            mapboxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                            mapMarkerSymbol = mapMarkerManager.create(mapMarkerSymbolOptions);
+
+                            readyMap.animateCamera(CameraUpdateFactory.newCameraPosition(
                                     new CameraPosition.Builder()
                                             .target(new LatLng(lat, lng))
                                             .zoom(8)
-                                            .build()), 4000);
+                                            .build()), 500);
                         }
                     } else {
-                        Log.d(TAG, "No such document set ride");
                         ShowRideCancelledDialog();
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });
     }
 
-    private void AddAnnotationMarkerToStyle(Style style) {
-        style.addImage(ID_ICON_MARKER,
-                BitmapUtils.getBitmapFromDrawable(ContextCompat.getDrawable(this, R.drawable.ic_riderr_launcher_foreground)));
+    private void InsertMarkerToStyle(Style loadedStyle) {
+        loadedStyle.addImage(MARKER_ID, BitmapUtils.getBitmapFromDrawable(ContextCompat.getDrawable(this, R.drawable.map_marker_dark)));
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mainMapView.onStart();
+        mainActivityMap.onStart();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mainMapView.onResume();
+        mainActivityMap.onResume();
 
-        mainMapView.getMapAsync(new OnMapReadyCallback() {
+        mainActivityMap.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-                mapboxMap.getUiSettings().setAllGesturesEnabled(false);
-                mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
+            public void onMapReady(@NonNull final MapboxMap readyMap) {
+                readyMap.getUiSettings().setAllGesturesEnabled(false);
+                readyMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
                     @Override
-                    public void onStyleLoaded(@NonNull final Style style) {
-                        FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                        String uid = fbuser.getUid();
+                    public void onStyleLoaded(@NonNull final Style loadedStyle) {
+                        String uid = currUser.getUid();
 
-                        DocumentReference docRef = db.collection("users").document(uid);
-                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        DocumentReference usersReference = dataStore.collection("users").document(uid);
+                        usersReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                             @Override
-                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                if (task.isSuccessful()) {
-                                    DocumentSnapshot document = task.getResult();
-                                    if (document.exists()) {
-                                        pride = document.getString("p-ride");
-                                        //dride = document.getLong("longitude");
-                                        dride = document.getString("d-ride");
+                            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                                if (returnedTask.isSuccessful()) {
+                                    DocumentSnapshot userDoc = returnedTask.getResult();
+                                    if (userDoc.exists()) {
+                                        pride = userDoc.getString("p-ride");
+                                        dride = userDoc.getString("d-ride");
 
                                         if(dride != null) {
-                                            SetRide(style, mapboxMap, dride, "driver");
+                                            SetRide(loadedStyle, readyMap, dride, "driver");
                                         }else if(pride != null){
-                                            SetRide(style, mapboxMap, pride, "passenger");
+                                            SetRide(loadedStyle, readyMap, pride, "passenger");
                                         }else{
-
+                                            Log.d(TAG, "Carry on no rides !!!");
                                         }
-
-
                                     } else {
-                                        Log.d(TAG, "No such document on resume");
+                                        Log.d(TAG, "Ride doesnt exist :: onResum check");
                                     }
                                 } else {
-                                    Log.d(TAG, "get failed with ", task.getException());
+                                    Log.d(TAG, "Exception ", returnedTask.getException());
                                 }
                             }
                         });
@@ -383,35 +297,35 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onPause() {
         super.onPause();
-        mainMapView.onPause();
+        mainActivityMap.onPause();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        mainMapView.onStop();
+        mainActivityMap.onStop();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        mainMapView.onLowMemory();
+        mainActivityMap.onLowMemory();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mainMapView.onDestroy();
+        mainActivityMap.onDestroy();
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mainMapView.onSaveInstanceState(outState);
+    protected void onSaveInstanceState(Bundle offState) {
+        super.onSaveInstanceState(offState);
+        mainActivityMap.onSaveInstanceState(offState);
     }
 
-    private void DeleteRideFromUser(FirebaseFirestore db, String rideType){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    private void DeleteRideFromUser(String rideType){
+        FirebaseUser signedInUser = FirebaseAuth.getInstance().getCurrentUser();
         Map<String, Object> userMap = new HashMap<>();
         if(rideType.equals("driver")){
             userMap.put("d-ride", null);
@@ -419,7 +333,7 @@ public class MainActivity extends AppCompatActivity
             userMap.put("p-ride", null);
         }
 
-        db.collection("users").document(user.getUid())
+        dataStore.collection("users").document(signedInUser.getUid())
                 .update(userMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
@@ -430,76 +344,68 @@ public class MainActivity extends AppCompatActivity
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                        Log.w(TAG, "Failed update DeleteRideFromUser();", e);
                     }
                 });
     }
 
     private void ShowRideCancelledDialog(){
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Your previous ride was cancelled");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK",new DialogInterface.OnClickListener(){
+        AlertDialog rideCancelledDialog = new AlertDialog.Builder(new ContextThemeWrapper(this, R.style.NavAlerts)).create();
+        rideCancelledDialog.setMessage("Your previous ride was cancelled");
+        rideCancelledDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK",new DialogInterface.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int in) {
-                final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                Map<String, Object> user = new HashMap<>();
-                user.put("p-ride", null);
-                db.collection("users").document(fbuser.getUid())
-                        .update(user)
+            public void onClick(DialogInterface dInterface, int num) {
+                Map<String, Object> userMap = new HashMap<>();
+                userMap.put("p-ride", null);
+                dataStore.collection("users").document(currUser.getUid())
+                        .update(userMap)
                         .addOnSuccessListener(new OnSuccessListener<Void>() {
                             @Override
-                            public void onSuccess(Void aVoid) {
-                                Log.d(TAG, "DocumentSnapshot successfully written!");
+                            public void onSuccess(Void v) {
+                                Toast.makeText(MainActivity.this, "Ride removed.", Toast.LENGTH_SHORT).show();
                             }
                         })
                         .addOnFailureListener(new OnFailureListener() {
                             @Override
                             public void onFailure(@NonNull Exception e) {
-                                Log.w(TAG, "Error writing document", e);
+                                Log.w(TAG, "Failed update ShowRideCancelledDialog();", e);
                             }
                         });
             }
         });
 
-        alertDialog.setCancelable(false);
-        alertDialog.show();
+        rideCancelledDialog.setCancelable(false);
+        rideCancelledDialog.show();
     }
 
     private void showDriverRatingDialog(final String rid, final String rideType) {
-        final EditText input = new EditText(this);
+        final EditText driverRatingInput = new EditText(this);
 
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Rate your Passengers (0-5)");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
+        final AlertDialog driverRatingDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        driverRatingDialog.setMessage("Rate your Passengers (0-5)");
+        driverRatingDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING", new DialogInterface.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int in) {
-                //finish();
+            public void onClick(DialogInterface dInterface, int num) {
                 String ratingAsString;
                 final int ratingAsInt;
-                ratingAsString = input.getText().toString();
+                ratingAsString = driverRatingInput.getText().toString();
                 ratingAsInt = Integer.parseInt(ratingAsString);
                 if(ratingAsInt >= 0 && ratingAsInt <= 5){
-                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                    final String uid = fbuser.getUid();
-
-                    DocumentReference docRef = db.collection("OfferedRides").document(rid);
-                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    DocumentReference rideRef = dataStore.collection("OfferedRides").document(rid);
+                    rideRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                if (document.exists()) {
-                                    cData = document.getData();
-                                    Log.d(TAG, "Danesh");
-                                    List<Map> d = (List<Map>) cData.get("passengers");
+                        public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                            if (returnedTask.isSuccessful()) {
+                                DocumentSnapshot rideDoc = returnedTask.getResult();
+                                if (rideDoc.exists()) {
+                                    rideDataObjectsMap = rideDoc.getData();
+                                    List<Map> d = (List<Map>) rideDataObjectsMap.get("passengers");
                                     for(int i = 0; i < d.size(); i++){
-                                        uData = d.get(i);
-                                        lData = d.get(i);
-                                        final String userId = uData.get("passenger");
-                                        long rating = lData.get("rating");
-                                        long amtOfRatings = lData.get("amountOfRatings");
+                                        passengerDataStringMap = d.get(i);
+                                        passengerDataLongMap = d.get(i);
+                                        final String userId = passengerDataStringMap.get("passenger");
+                                        long rating = passengerDataLongMap.get("rating");
+                                        long amtOfRatings = passengerDataLongMap.get("amountOfRatings");
                                         final long amtOfRatingsIncludingThis = amtOfRatings + 1;
                                         final long ratingToAddToDB;
                                         final float ratingBeforeRounding;
@@ -513,110 +419,108 @@ public class MainActivity extends AppCompatActivity
                                             ratingToAddToDB = Math.round(ratingBeforeRounding);
                                         }
 
-                                        DocumentReference docRef = db.collection("users").document(userId);
-                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                        DocumentReference usersReference = dataStore.collection("users").document(userId);
+                                        usersReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                             @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                if (task.isSuccessful()) {
-                                                    DocumentSnapshot document = task.getResult();
-                                                    if (document.exists()) {
+                                            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                                                if (returnedTask.isSuccessful()) {
+                                                    DocumentSnapshot userDoc = returnedTask.getResult();
+                                                    if (userDoc.exists()) {
                                                         Map<String, Object> user = new HashMap<>();
                                                         user.put("rating", ratingToAddToDB);
                                                         user.put("amountOfRatings", amtOfRatingsIncludingThis);
 
-                                                        db.collection("users").document(userId)
+                                                        dataStore.collection("users").document(userId)
                                                                 .update(user)
                                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                     @Override
-                                                                    public void onSuccess(Void aVoid) {
+                                                                    public void onSuccess(Void v) {
                                                                         Log.d(TAG, "USER RATINGS UPDATED");
-                                                                        //DeleteRideFromUser(db, rideType);
                                                                     }
                                                                 })
                                                                 .addOnFailureListener(new OnFailureListener() {
                                                                     @Override
                                                                     public void onFailure(@NonNull Exception e) {
-                                                                        Log.w(TAG, "Error writing document", e);
+                                                                        Log.w(TAG, "Failed update driverRatingDialog userRef", e);
                                                                     }
                                                                 });
                                                     } else {
-                                                        Log.d(TAG, "No such document");
+                                                        Log.d(TAG, "Could get user doc");
                                                     }
                                                 } else {
-                                                    Log.d(TAG, "get failed with ", task.getException());
+                                                    Log.d(TAG, "Exception: ", returnedTask.getException());
                                                 }
                                             }
                                         });
 
                                     }
-                                    DeleteRideFromUser(db, rideType);
+                                    DeleteRideFromUser(rideType);
                                 } else {
-                                    Log.d(TAG, "No such document");
+                                    Log.d(TAG, "Couldnt find doc");
                                 }
                             } else {
-                                Log.d(TAG, "get failed with ", task.getException());
+                                Log.d(TAG, "Exception: ", returnedTask.getException());
                             }
                         }
                     });
                 }else{
-                    Snackbar ratingSB = Snackbar.make(findViewById(R.id.main_content), "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
-                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-                    View view = ratingSB.getView();
-                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
-                    tv.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
-                    ratingSB.show();
+                    driverRatingDialog.dismiss();
+                    AlertDialog errorMessageDialog = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.NavAlerts)).create();
+                    errorMessageDialog.setMessage("Enter a number from 0-5");
+                    errorMessageDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK",new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dInterface, int num) {
+                            showDriverRatingDialog(rid, rideType);
+                        }
+                    });
+
+                    errorMessageDialog.setCancelable(false);
+                    errorMessageDialog.show();
                 }
             }
         });
 
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        input.setLayoutParams(lp);
-        alertDialog.setView(input);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        driverRatingInput.setLayoutParams(lp);
+        driverRatingDialog.setView(driverRatingInput);
 
-        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
-        ViewCompat.setBackgroundTintList(input, colorStateList);
-        input.setTextColor(colorStateList);
+        ColorStateList csList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
+        ViewCompat.setBackgroundTintList(driverRatingInput, csList);
+        driverRatingInput.setTextColor(csList);
 
-        alertDialog.setCancelable(false);
-        alertDialog.show();
+        driverRatingDialog.setCancelable(false);
+        driverRatingDialog.show();
     }
 
     private void showPassRatingDialog(final String rid, final String rideType) {
-        final EditText input = new EditText(this);
+        final EditText passRatingInput = new EditText(this);
 
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Rate your Driver (0-5)");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
+        final AlertDialog passRatingDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        passRatingDialog.setMessage("Rate your Driver (0-5)");
+        passRatingDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int in) {
-                //finish();
                 String ratingAsString;
                 final int ratingAsInt;
-                ratingAsString = input.getText().toString();
+                ratingAsString = passRatingInput.getText().toString();
                 ratingAsInt = Integer.parseInt(ratingAsString);
                 if(ratingAsInt >= 0 && ratingAsInt <= 5){
-                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                    final String uid = fbuser.getUid();
-
-                    DocumentReference docRef = db.collection("OfferedRides").document(rid);
-                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    DocumentReference rideRef = dataStore.collection("OfferedRides").document(rid);
+                    rideRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                             if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                if (document.exists()) {
-                                    DocumentReference driverDocRef = db.collection("users").document(document.getString("offeredBy"));
+                                DocumentSnapshot rideDoc = task.getResult();
+                                if (rideDoc.exists()) {
+                                    DocumentReference driverDocRef = dataStore.collection("users").document(rideDoc.getString("offeredBy"));
                                     driverDocRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                         @Override
                                         public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                                             if (task.isSuccessful()) {
-                                                DocumentSnapshot document = task.getResult();
-                                                if (document.exists()) {
-                                                    check(document.getString("user-id"), document.getLong("rating"), document.getLong("amountOfRatings"), ratingAsInt, db, rideType);
+                                                DocumentSnapshot userDoc = task.getResult();
+                                                if (userDoc.exists()) {
+                                                    UpdateRating(userDoc.getString("user-id"), userDoc.getLong("rating"), userDoc.getLong("amountOfRatings"), ratingAsInt, rideType);
                                                 } else {
                                                     Log.d(TAG, "No such document");
                                                 }
@@ -634,35 +538,36 @@ public class MainActivity extends AppCompatActivity
                         }
                     });
                 }else{
-                    Snackbar ratingSB = Snackbar.make(findViewById(R.id.main_content), "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
-                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(MainActivity.this, R.color.colorAccent));
-                    View view = ratingSB.getView();
-                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
-                    tv.setTextColor(ContextCompat.getColor(MainActivity.this, R.color.colorPrimary));
-                    ratingSB.show();
+                    passRatingDialog.dismiss();
+                    AlertDialog errorMessageDialog = new AlertDialog.Builder(new ContextThemeWrapper(MainActivity.this, R.style.NavAlerts)).create();
+                    errorMessageDialog.setMessage("Enter a number from 0-5");
+                    errorMessageDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK",new DialogInterface.OnClickListener(){
+                        @Override
+                        public void onClick(DialogInterface dInterface, int num) {
+                            showPassRatingDialog(rid, rideType);
+                        }
+                    });
+
+                    errorMessageDialog.setCancelable(false);
+                    errorMessageDialog.show();
                 }
             }
         });
 
 
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        input.setLayoutParams(lp);
-        alertDialog.setView(input);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        passRatingInput.setLayoutParams(lp);
+        passRatingDialog.setView(passRatingInput);
 
-        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
-        ViewCompat.setBackgroundTintList(input, colorStateList);
-        input.setTextColor(colorStateList);
+        ColorStateList csList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
+        ViewCompat.setBackgroundTintList(passRatingInput, csList);
+        passRatingInput.setTextColor(csList);
 
-        alertDialog.setCancelable(false);
-        alertDialog.show();
+        passRatingDialog.setCancelable(false);
+        passRatingDialog.show();
     }
 
-    private void check(final String userId, long rating, long amtOfRatings, int ratingAsInt, final FirebaseFirestore db, final String rideType){
-        //final String userId = uData.get("passenger");
-        //long rating = lData.get("rating");
-        //long amtOfRatings = lData.get("amountOfRatings");
+    private void UpdateRating(final String userId, long rating, long amtOfRatings, int ratingAsInt, final String rideType){
         final long amtOfRatingsIncludingThis = amtOfRatings + 1;
         final long ratingToAddToDB;
         final float ratingBeforeRounding;
@@ -676,37 +581,37 @@ public class MainActivity extends AppCompatActivity
             ratingToAddToDB = Math.round(ratingBeforeRounding);
         }
 
-        DocumentReference docRef = db.collection("users").document(userId);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        DocumentReference userRef = dataStore.collection("users").document(userId);
+        userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("rating", ratingToAddToDB);
-                        user.put("amountOfRatings", amtOfRatingsIncludingThis);
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot userDoc = returnedTask.getResult();
+                    if (userDoc.exists()) {
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("rating", ratingToAddToDB);
+                        userMap.put("amountOfRatings", amtOfRatingsIncludingThis);
 
-                        db.collection("users").document(userId)
-                                .update(user)
+                        dataStore.collection("users").document(userId)
+                                .update(userMap)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
-                                    public void onSuccess(Void aVoid) {
+                                    public void onSuccess(Void v) {
                                         Log.d(TAG, "USER RATINGS UPDATED");
-                                        DeleteRideFromUser(db, rideType);
+                                        DeleteRideFromUser(rideType);
                                     }
                                 })
                                 .addOnFailureListener(new OnFailureListener() {
                                     @Override
                                     public void onFailure(@NonNull Exception e) {
-                                        Log.w(TAG, "Error writing document", e);
+                                        Log.w(TAG, "Failed to update in UpdateRating();", e);
                                     }
                                 });
                     } else {
-                        Log.d(TAG, "No such document");
+                        Log.d(TAG, "Couldnt find the user");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });

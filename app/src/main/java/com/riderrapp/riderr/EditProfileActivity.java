@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -16,7 +15,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -36,52 +34,54 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
 
     private static final String TAG = "EditProfileActivity";
 
-    private double lat, lng;
     private String latToServer = null, lngToServer = null;
 
-    private LocationManager mLocationManager;
-    private final LocationListener mLocationListener = new LocationListener() {
+    private LocationManager locManager;
+
+    FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    FirebaseUser authUser = FirebaseAuth.getInstance().getCurrentUser();
+    String uid = authUser.getUid();
+
+    private final LocationListener locListener = new LocationListener() {
         @Override
-        public void onLocationChanged(final Location location) {
-            System.out.println("Latitude changed to : " + location.getLatitude());
-            System.out.println("Longitude changed to : " + location.getLongitude());
-            //lat = location.getLatitude();
-            //lng = location.getLongitude();
+        public void onLocationChanged(final Location loc) {
+            System.out.println("Latitude changed to : " + loc.getLatitude());
+            System.out.println("Longitude changed to : " + loc.getLongitude());
         }
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-            System.out.println("Location listener status just changed to : " + status);
+        public void onStatusChanged(String p, int s, Bundle e) {
+            System.out.println("Loc listener status: " + s);
         }
         @Override
-        public void onProviderEnabled(String provider) {
-            System.out.println("provider was just enabled : " + provider);
+        public void onProviderEnabled(String p) {
+            System.out.println("Provides en : " + p);
         }
         @Override
-        public void onProviderDisabled(String provider) {
-            System.out.println("provider was just disabled : " + provider);
+        public void onProviderDisabled(String p) {
+            System.out.println("Provider dis : " + p);
         }
     };
 
-
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grants) {
-        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    public void onRequestPermissionsResult(int rCode, String perm[], int[] permissionsGranted) {
+        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(this, "Riderr needs to see your location", Toast.LENGTH_SHORT).show();
             return;
         }else{
-            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
-                    1, mLocationListener);
+            locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
+                    1, locListener);
 
-            Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
             latToServer = Double.toString(loc.getLatitude());
             lngToServer = Double.toString(loc.getLongitude());
         }
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
         setContentView(R.layout.activity_edit_profile);
 
         final Button saveProfileChangesBtn = (Button) findViewById(R.id.SaveProfileChangesBtn);
@@ -89,18 +89,17 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
 
         updateLocationBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                //latToServer = Double.toString(lat);
-                //lngToServer = Double.toString(lng);
-                if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
                     return;
                 }else{
-                    mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                    locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-                    mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
-                            1, mLocationListener);
+                    locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
+                            1, locListener);
 
-                    Location loc = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                    Location loc = locManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
                     latToServer = Double.toString(loc.getLatitude());
                     lngToServer = Double.toString(loc.getLongitude());
                 }
@@ -120,28 +119,17 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
         super.onStart();
         PopulateDetails();
 
-        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(EditProfileActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(EditProfileActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
             return;
         }else{
-            // Write you code here if permission already given.
-            mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            locManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100,
-                    1, mLocationListener);
+            locManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 100, 1, locListener);
         }
     }
 
     private void CheckFirstTimeUser(String fname, String lname){
-        //show the edit text features
-        //if the name of the user is not set then they are first time user
-        //if the name is set then disable the use of the name changing edit texts
-
-        /* if(fname === notset && lname === notset){
-            enable the edit text funct
-        }
-         */
-
         final EditText firstNameEdit =  (EditText) findViewById(R.id.editFirstname);
         final EditText lastNameEdit =  (EditText) findViewById(R.id.editLastname);
 
@@ -164,19 +152,17 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
     }
 
     private void PopulateDetails(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
+        dataStore = FirebaseFirestore.getInstance();
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
+        uid = authUser.getUid();
 
-        DocumentReference docRef = db.collection("users").document(uid);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        DocumentReference usersReference = dataStore.collection("users").document(uid);
+        usersReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
-
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot usersDocument = returnedTask.getResult();
+                    if (usersDocument.exists()) {
                         final EditText firstNameEdit =  (EditText) findViewById(R.id.editFirstname);
                         final EditText lastNameEdit =  (EditText) findViewById(R.id.editLastname);
                         final EditText carMakeEdit =  (EditText) findViewById(R.id.editCarMake);
@@ -184,31 +170,31 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
                         final EditText carSeatsEdit =  (EditText) findViewById(R.id.editCarSeats);
                         final EditText priceEdit =  (EditText) findViewById(R.id.editPrice);
 
-                        firstNameEdit.setHint(document.getString("firstname"));
-                        lastNameEdit.setHint(document.getString("lastname"));
-                        carMakeEdit.setHint(document.getString("car-make"));
-                        carRegEdit.setHint(document.getString("registration-no"));
-                        priceEdit.setHint(document.getString("ride-price"));
+                        firstNameEdit.setHint(usersDocument.getString("firstname"));
+                        lastNameEdit.setHint(usersDocument.getString("lastname"));
+                        carMakeEdit.setHint(usersDocument.getString("car-make"));
+                        carRegEdit.setHint(usersDocument.getString("registration-no"));
+                        priceEdit.setHint(usersDocument.getString("ride-price"));
 
-                        int seatsNo = document.getLong("seats-no").intValue();
+                        int seatsNo = usersDocument.getLong("seats-no").intValue();
                         String seatsNoString = String.valueOf(seatsNo);
                         carSeatsEdit.setHint(seatsNoString);
 
                         CheckFirstTimeUser(firstNameEdit.getHint().toString(), lastNameEdit.getHint().toString());
                     } else {
-                        Log.d(TAG, "No such document");
+                        Toast.makeText(EditProfileActivity.this, "Could not find user details.", Toast.LENGTH_SHORT).show();
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });
     }
 
     private void SaveProfileChanges(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
+        dataStore = FirebaseFirestore.getInstance();
+        authUser = FirebaseAuth.getInstance().getCurrentUser();
+        uid = authUser.getUid();
         final EditText firstNameText =  (EditText) findViewById(R.id.editFirstname);
         final EditText lastNameText =  (EditText) findViewById(R.id.editLastname);
         final EditText carMakeText =  (EditText) findViewById(R.id.editCarMake);
@@ -216,56 +202,44 @@ public class EditProfileActivity extends AppCompatActivity implements ActivityCo
         final EditText carSeatsText =  (EditText) findViewById(R.id.editCarSeats);
         final EditText priceText =  (EditText) findViewById(R.id.editPrice);
 
-        Map<String, Object> user = new HashMap<>();
-        /*user.put("user-id", uid);
-        user.put("car-make", "Toyota");
-        user.put("registration-no", "FF55 LMN");
-        user.put("seats-no", 4);
-        user.put("user-email", "email@email.com");
-        user.put("firstname", "Danesh");
-        user.put("lastname", "Iqbal");*/
+        Map<String, Object> userDetails = new HashMap<>();
 
         if(!TextUtils.isEmpty(firstNameText.getText().toString())){
-            user.put("firstname", firstNameText.getText().toString());
+            userDetails.put("firstname", firstNameText.getText().toString());
         }
         if(!TextUtils.isEmpty(lastNameText.getText().toString())){
-            user.put("lastname", lastNameText.getText().toString());
+            userDetails.put("lastname", lastNameText.getText().toString());
         }
         if(!TextUtils.isEmpty(carMakeText.getText().toString())){
-            user.put("car-make", carMakeText.getText().toString());
+            userDetails.put("car-make", carMakeText.getText().toString());
         }
         if(!TextUtils.isEmpty(carRegText.getText().toString())){
-            user.put("registration-no", carRegText.getText().toString());
+            userDetails.put("registration-no", carRegText.getText().toString());
         }
         if(!TextUtils.isEmpty(carSeatsText.getText().toString())){
             int n = Integer.parseInt(carSeatsText.getText().toString());
-            user.put("seats-no", n);
+            userDetails.put("seats-no", n);
         }
         if(!TextUtils.isEmpty(priceText.getText().toString())){
-            user.put("ride-price", priceText.getText().toString());
+            userDetails.put("ride-price", priceText.getText().toString());
         }
         if(latToServer != null){
-            user.put("latitude", latToServer);
-            user.put("longitude", lngToServer);
+            userDetails.put("latitude", latToServer);
+            userDetails.put("longitude", lngToServer);
         }
 
-        //check if name and lastname for the user are disabled
-        //user.put("firstname", firstNameText.getText().toString());
-        //user.put("lastname", lastNameText.getText().toString());
-
-        // Add a new document with a generated ID
-        db.collection("users").document(uid)
-                .update(user)
+        dataStore.collection("users").document(uid)
+                .update(userDetails)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    public void onSuccess(Void v) {
+                        Toast.makeText(EditProfileActivity.this, "Profile changes saved.", Toast.LENGTH_SHORT).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                    public void onFailure(@NonNull Exception ex) {
+                        Toast.makeText(EditProfileActivity.this, "Could not save profile changes. Try again.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

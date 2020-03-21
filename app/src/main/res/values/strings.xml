@@ -2,21 +2,12 @@
     <string name="app_name">Riderr</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
-    <string name="nav_header_title">Android Studio</string>
-    <string name="nav_header_subtitle">android.studio@android.com</string>
     <string name="nav_header_desc">Navigation header</string>
-    <string name="action_settings">Settings</string>
 
-    <string name="menu_home">Find a ride</string>
-    <string name="menu_gallery">Offer a ride</string>
-    <string name="menu_slideshow">View rides</string>
-    <string name="menu_tools">Profile</string>
-    <string name="menu_share">Share</string>
-    <string name="menu_send">Send</string>
-
-    <string name="title_activity_splash">SplashActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="menu_far">Find a ride</string>
+    <string name="menu_oar">Offer a ride</string>
+    <string name="menu_vr">View rides</string>
+    <string name="menu_profile">Profile</string>
 
     <string name="access_token">pk.eyJ1IjoiZGlxYmFsIiwiYSI6ImNqdzZtMzQ3czAxZXYzem83eTY4NWpua2kifQ.clrFPQXs0E70rz9R4H292w</string>
 </resources>

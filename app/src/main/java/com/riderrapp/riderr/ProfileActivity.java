@@ -1,77 +1,51 @@
 package com.riderrapp.riderr;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-
-import android.view.MenuItem;
-
-import com.google.android.material.navigation.NavigationView;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import androidx.drawerlayout.widget.DrawerLayout;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.appcompat.app.ActionBar;
 
-import android.view.Menu;
-import android.view.ViewDebug;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.HashMap;
-import java.util.Map;
-
-
 public class ProfileActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
     private static final String TAG = "ProfileActivity";
 
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
         setContentView(R.layout.activity_profile);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-
-        // Initialize Firebase Auth
-        mAuth = FirebaseAuth.getInstance();
+        ActionBar topBar = getSupportActionBar();
+        topBar.setDisplayHomeAsUpEnabled(true);
 
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
-        final Intent EditProfileIntent = new Intent(this, EditProfileActivity.class);
+        final Intent editProfileIntent = new Intent(this, EditProfileActivity.class);
 
         editProfileBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                startActivity(EditProfileIntent);
+                startActivity(editProfileIntent);
             }
         });
-
-
     }
 
     @Override
@@ -81,69 +55,31 @@ public class ProfileActivity extends AppCompatActivity {
     }
 
     private void GetUser(){
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            // User is signed in
-            Toast.makeText(ProfileActivity.this, "User is signed in.",
-                    Toast.LENGTH_SHORT).show();
-            updateUI(user);
+        if (currUser != null) {
+            updateUI(currUser);
         } else {
-            // No user is signed in
-            Toast.makeText(ProfileActivity.this, "NO user is signed in.",
-                    Toast.LENGTH_SHORT).show();
+            updateUI(null);
         }
     }
 
-
-
-    private void updateUI(FirebaseUser user) {
+    private void updateUI(FirebaseUser u) {
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
 
-        if (user != null) {
-            System.out.println("user NOT null");
-            // Name, email address, and profile photo Url
-            /*String name = user.getDisplayName();
-            String email = user.getEmail();
-
-            // Check if user's email is verified
-            boolean emailVerified = user.isEmailVerified();
-
-            System.out.println(name);
-            System.out.println(email);
-            System.out.println(emailVerified);
-
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName("Riderr name test update")
-                    .build();
-
-            user.updateProfile(profileUpdates)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                System.out.println("profile updated");
-                            }
-                        }
-                    });*/
-            //SaveProfileChanges();
-            //here instead we want to call get user profile, as every time the profile loads then get the profile
-            boolean emailVerified = user.isEmailVerified();
+        if (u != null) {
+            System.out.println("user isnt null");
+            boolean emailVerified = u.isEmailVerified();
 
             if(emailVerified) {
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                String uid = fbuser.getUid();
+                String uid = currUser.getUid();
                 editProfileBtn.setEnabled(true);
 
-                DocumentReference docRef = db.collection("users").document(uid);
-                docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                DocumentReference userRef = dataStore.collection("users").document(uid);
+                userRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                Log.d(TAG, "DocumentSnapshot data: " + document.getString("car-make"));
-
+                    public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                        if (returnedTask.isSuccessful()) {
+                            DocumentSnapshot userDoc = returnedTask.getResult();
+                            if (userDoc.exists()) {
                                 TextView fnameLabel = (TextView)findViewById(R.id.FirstNameLabel);
                                 TextView lnameLabel = (TextView)findViewById(R.id.LastNameLabel);
                                 TextView emailLabel = (TextView)findViewById(R.id.EmailLabel);
@@ -153,20 +89,21 @@ public class ProfileActivity extends AppCompatActivity {
                                 TextView ratingCaption = (TextView)findViewById(R.id.ratingCaption);
                                 TextView priceLabel = (TextView)findViewById(R.id.PriceLabel);
 
-                                fnameLabel.setText(document.getString("firstname"));
-                                lnameLabel.setText(document.getString("lastname"));
-                                emailLabel.setText(document.getString("user-email"));
-                                carMakeLabel.setText(document.getString("car-make"));
-                                carRegLabel.setText(document.getString("registration-no"));
+                                fnameLabel.setText(userDoc.getString("firstname"));
+                                lnameLabel.setText(userDoc.getString("lastname"));
+                                emailLabel.setText(userDoc.getString("user-email"));
+                                carMakeLabel.setText(userDoc.getString("car-make"));
+                                carRegLabel.setText(userDoc.getString("registration-no"));
                                 String rCapString;
-                                if(document.getLong("rating") == -1){
+
+                                if(userDoc.getLong("rating") == -1){
                                     rCapString = "NA";
                                     ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.black_overlay));
                                     ratingCaption.setText(rCapString);
                                 }else{
-                                    rCapString = Long.toString(document.getLong("rating"));
+                                    rCapString = Long.toString(userDoc.getLong("rating"));
                                     ratingCaption.setText(rCapString + "/5");
-                                    long ratingLong = document.getLong("rating");
+                                    long ratingLong = userDoc.getLong("rating");
 
                                     if(ratingLong > 3){
                                         ratingCaption.setTextColor(ContextCompat.getColor(ProfileActivity.this, R.color.goodGreen));
@@ -177,32 +114,30 @@ public class ProfileActivity extends AppCompatActivity {
                                     }
                                 }
 
-                                if(document.get("ride-price") == null){
+                                if(userDoc.get("ride-price") == null){
                                     priceLabel.setText("");
                                 }else{
-                                    priceLabel.setText(document.getString("ride-price"));
+                                    priceLabel.setText(userDoc.getString("ride-price"));
                                 }
 
-                                int seatsNo = document.getLong("seats-no").intValue();
+                                int seatsNo = userDoc.getLong("seats-no").intValue();
                                 String seatsNoString = String.valueOf(seatsNo);
                                 carSeatsLabel.setText(seatsNoString);
                             } else {
-                                Log.d(TAG, "No such document");
+                                Log.d(TAG, "couldnt find the user document");
                             }
                         } else {
-                            Log.d(TAG, "get failed with ", task.getException());
+                            Log.d(TAG, "Exception: ", returnedTask.getException());
                         }
                     }
                 });
             }
             else{
                 editProfileBtn.setEnabled(false);
-                Toast.makeText(ProfileActivity.this, "You need to VERIFY your email before you can make changes to your profile.",
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(ProfileActivity.this, "You need to VERIFY your email before you can make changes to your profile.", Toast.LENGTH_SHORT).show();
             }
-
         } else {
-            System.out.println("user IS null");
+            System.out.println("user returned null");
             editProfileBtn.setEnabled(false);
         }
     }

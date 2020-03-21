@@ -7,7 +7,7 @@
     tools:context=".SearchActivity">
 
     <TextView
-        android:id="@+id/destination_lbl"
+        android:id="@+id/destinationLbl"
         android:layout_width="215dp"
         android:layout_height="30dp"
         android:layout_alignParentStart="true"
@@ -51,10 +51,10 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.488"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/destination_lbl" />
+        app:layout_constraintTop_toBottomOf="@+id/destinationLbl" />
 
     <TextView
-        android:id="@+id/in_date"
+        android:id="@+id/searchDate"
         android:layout_width="215dp"
         android:layout_height="30dp"
         android:layout_alignParentStart="true"
@@ -71,28 +71,28 @@
         app:layout_constraintTop_toBottomOf="@+id/searchTxtBox" />
 
     <Button
-        android:id="@+id/btn_date"
+        android:id="@+id/dateBtn"
         android:layout_width="351dp"
         android:layout_height="54dp"
-        android:layout_alignBottom="@+id/in_date"
+        android:layout_alignBottom="@+id/searchDate"
         android:layout_marginStart="8dp"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="8dp"
-        android:layout_toEndOf="@+id/in_date"
-        android:layout_toRightOf="@+id/in_date"
+        android:layout_toEndOf="@+id/searchDate"
+        android:layout_toRightOf="@+id/searchDate"
         android:backgroundTint="@color/californiaGold"
         android:text="SELECT DATE"
         android:textColor="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.477"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/in_date" />
+        app:layout_constraintTop_toBottomOf="@+id/searchDate" />
 
     <TextView
-        android:id="@+id/in_time"
+        android:id="@+id/timeLbl"
         android:layout_width="212dp"
         android:layout_height="30dp"
-        android:layout_below="@+id/in_date"
+        android:layout_below="@+id/searchDate"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_marginStart="8dp"
@@ -105,16 +105,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.12"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btn_date"
+        app:layout_constraintTop_toBottomOf="@+id/dateBtn"
         app:layout_constraintVertical_bias="0.215" />
 
     <Button
-        android:id="@+id/btn_time"
+        android:id="@+id/timeBtn"
         android:layout_width="351dp"
         android:layout_height="54dp"
-        android:layout_below="@+id/btn_date"
-        android:layout_alignStart="@+id/btn_date"
-        android:layout_alignLeft="@+id/btn_date"
+        android:layout_below="@+id/dateBtn"
+        android:layout_alignStart="@+id/dateBtn"
+        android:layout_alignLeft="@+id/dateBtn"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
@@ -125,7 +125,7 @@
         app:layout_constraintBottom_toTopOf="@+id/searchRideBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/in_time"
+        app:layout_constraintTop_toBottomOf="@+id/timeLbl"
         app:layout_constraintVertical_bias="0.035" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

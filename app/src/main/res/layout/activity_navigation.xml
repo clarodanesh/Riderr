@@ -5,10 +5,10 @@
     android:layout_height="match_parent">
 
     <com.mapbox.services.android.navigation.ui.v5.NavigationView
-        android:id="@+id/navigationView"
-        android:layout_width="match_parent"
+        android:id="@+id/rideNavView"
         android:layout_height="match_parent"
-        app:navigationDarkTheme="@style/NavigationViewDark"
-        app:navigationLightTheme="@style/NavigationViewLight" />
+        android:layout_width="match_parent"
+        app:navigationLightTheme="@style/NavigationViewLight"
+        app:navigationDarkTheme="@style/NavigationViewDark" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

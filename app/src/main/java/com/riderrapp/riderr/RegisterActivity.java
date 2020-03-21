@@ -3,15 +3,11 @@ package com.riderrapp.riderr;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.app.ActionBar;
 import android.content.Intent;
-import android.graphics.Color;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -23,7 +19,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -31,27 +26,23 @@ import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private FirebaseAuth mAuth;
-
     private static final String TAG = "RegisterActivity";
 
+    private FirebaseAuth authInstance;
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
+
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
         setContentView(R.layout.activity_register);
-        /*if (Build.VERSION.SDK_INT < 16) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                    WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
-        View decorView = getWindow().getDecorView();
-        // Hide the status bar.
-        int uiOptions = View.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);*/
+
         getWindow().getDecorView().setBackgroundColor(getColor(R.color.colorPrimaryDark));
         if(Build.VERSION.SDK_INT >= 21) {
             getWindow().setNavigationBarColor(getColor(R.color.colorPrimaryDark));
         }
-        mAuth = FirebaseAuth.getInstance();
+
+        authInstance = FirebaseAuth.getInstance();
         final EditText emailEdit =  (EditText) findViewById(R.id.emailTxtBoxRegister);
         final EditText passwordEdit =  (EditText) findViewById(R.id.passwordTextBoxRegister);
         final Button registerBtn = (Button) findViewById(R.id.RegisterBtnRegister);
@@ -68,17 +59,11 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        final Intent LoginIntent = new Intent(this, LoginActivity.class);
-        //handle search ride button
+        final Intent loginIntent = new Intent(this, LoginActivity.class);
         final Button loginRegisterBtn = (Button) findViewById(R.id.loginBtnRegister);
         loginRegisterBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // Code here executes on main thread after user presses button
-                //startActivity(intent);
-
-                //here can onclick get the fulldate and time and onlclick send to server
-                //dateText.setText(fullDate);
-                startActivity(LoginIntent);
+                startActivity(loginIntent);
                 finish();
             }
         });
@@ -87,37 +72,10 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     public void onStart() {
         super.onStart();
-        /*// Check if user is signed in (non-null) and update UI accordingly.
-        String email = "riderrmail@gmail.com";
-        String password = "test@riderrappcom";
-
-        mAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            updateUI(user);
-                            Toast.makeText(RegisterActivity.this, "Authentication SUCCESS.",
-                                    Toast.LENGTH_SHORT).show();
-                        } else {
-                            // If sign in fails, display a message to the user.
-                            //Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();
-                            updateUI(null);
-                        }
-
-                        // ...
-                    }
-                });
-
-        //FirebaseUser currentUser = mAuth.getCurrentUser();
-        //updateUI(currentUser);*/
     }
 
+    //Email validation regex function made with help from
+    //https://www.tutorialspoint.com/validate-email-address-in-java
     static boolean IsEmailValid(String emailToCheck) {
         String regularExpression = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
         return emailToCheck.matches(regularExpression);
@@ -126,156 +84,103 @@ public class RegisterActivity extends AppCompatActivity {
     public void register(final String e, final String p){
         if(e.contains(".ac.uk") && IsEmailValid(e)) {
             if(p.length() > 7) {
-                mAuth.createUserWithEmailAndPassword(e, p)
+                authInstance.createUserWithEmailAndPassword(e, p)
                         .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                             @Override
-                            public void onComplete(@NonNull Task<AuthResult> task) {
-                                if (task.isSuccessful()) {
-                                    // Sign in success, update UI with the signed-in user's information
-                                    //Log.d(TAG, "createUserWithEmail:success");
-                                    System.out.println("task success");
-                                    FirebaseUser user = mAuth.getCurrentUser();
+                            public void onComplete(@NonNull Task<AuthResult> returnedTask) {
+                                if (returnedTask.isSuccessful()) {
+                                    FirebaseUser user = authInstance.getCurrentUser();
                                     TryLogin(e, p);
-                                    Toast.makeText(RegisterActivity.this, "Registration successful.",
-                                            Toast.LENGTH_SHORT).show();
-                                    updateUI(user);
+                                    Toast.makeText(RegisterActivity.this, "Registration successful.", Toast.LENGTH_SHORT).show();
+                                    CheckIfUserNull(user);
                                 } else {
-                                    // If sign in fails, display a message to the user.
-                                    //Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                                    System.out.println("task fail");
-                                    Toast.makeText(RegisterActivity.this, "Authentication failed. Try again.",
-                                            Toast.LENGTH_SHORT).show();
-                                    updateUI(null);
+                                    Toast.makeText(RegisterActivity.this, "Authentication failed. Try again.", Toast.LENGTH_SHORT).show();
+                                    CheckIfUserNull(null);
                                 }
                             }
                         });
             }else{
-                Toast.makeText(RegisterActivity.this, "Your password must be longer than 7 characters.",
-                        Toast.LENGTH_LONG).show();
+                Toast.makeText(RegisterActivity.this, "Your password must be longer than 7 characters.", Toast.LENGTH_LONG).show();
             }
         }else{
-            Toast.makeText(RegisterActivity.this, "Your email needs to be a valid .ac.uk email.",
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(RegisterActivity.this, "Your email needs to be a valid .ac.uk email.", Toast.LENGTH_LONG).show();
         }
     }
 
-    private void updateUI(FirebaseUser user) {
-        if (user != null) {
-            System.out.println("user NOT null");
-            user.sendEmailVerification()
+    private void CheckIfUserNull(FirebaseUser u) {
+        if (u != null) {
+            u.sendEmailVerification()
                     .addOnCompleteListener(new OnCompleteListener<Void>() {
                         @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                //Log.d(TAG, "Email sent.");
-                                Toast.makeText(RegisterActivity.this, "Check email for verification",
-                                        Toast.LENGTH_SHORT).show();
+                        public void onComplete(@NonNull Task<Void> returnedTask) {
+                            if (returnedTask.isSuccessful()) {
+                                Toast.makeText(RegisterActivity.this, "Check email for verification", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
         } else {
-            System.out.println("user IS null");
+            System.out.println("The user returned null");
         }
     }
 
     private void TryLogin(String email, String password){
-        mAuth.signInWithEmailAndPassword(email, password)
+        authInstance.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // Sign in success, update UI with the signed-in user's information
-                            //Log.d(TAG, "signInWithEmail:success");
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            //updateUI(user);
+                    public void onComplete(@NonNull Task<AuthResult> returnedTask) {
+                        if (returnedTask.isSuccessful()) {
                             CreateUser();
-                            AttemptLoginOpen(user);
-                            /*Toast.makeText(RegisterActivity.this, "Authentication SUCCESS.",
-                                    Toast.LENGTH_SHORT).show();*/
+                            AttemptLoginOpen(currUser);
                         } else {
-                            // If sign in fails, display a message to the user.
-                            //Log.w(TAG, "signInWithEmail:failure", task.getException());
-                            /*Toast.makeText(RegisterActivity.this, "Authentication failed.",
-                                    Toast.LENGTH_SHORT).show();*/
-                            //updateUI(null);
+                            System.out.println("Couldnt login");
                         }
-
-                        // ...
                     }
                 });
     }
 
     private void CreateUser(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
-        Map<String, Object> user = new HashMap<>();
+        String uid = currUser.getUid();
+        Map<String, Object> userMap = new HashMap<>();
 
-        user.put("car-make", "");
-        user.put("firstname", "firstname");
-        user.put("lastname", "lastname");
-        user.put("registration-no", "");
-        user.put("seats-no", 0);
-        user.put("user-email", fbuser.getEmail());
-        user.put("user-id", fbuser.getUid());
-        user.put("p-ride", null);
-        user.put("d-ride", null);
-        user.put("latitude", null);
-        user.put("longitude", null);
-        user.put("rating", -1);
-        user.put("amountOfRatings", 0);
-        user.put("ride-price", null);
+        userMap.put("car-make", "");
+        userMap.put("firstname", "firstname");
+        userMap.put("lastname", "lastname");
+        userMap.put("registration-no", "");
+        userMap.put("seats-no", 0);
+        userMap.put("user-email", currUser.getEmail());
+        userMap.put("user-id", currUser.getUid());
+        userMap.put("p-ride", null);
+        userMap.put("d-ride", null);
+        userMap.put("latitude", null);
+        userMap.put("longitude", null);
+        userMap.put("rating", -1);
+        userMap.put("amountOfRatings", 0);
+        userMap.put("ride-price", null);
 
-        db.collection("users").document(uid)
-                .set(user)
+        dataStore.collection("users").document(uid)
+                .set(userMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    public void onSuccess(Void v) {
+                        Log.d(TAG, "User was added to the db");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                        Log.w(TAG, "Exception: ", e);
                     }
                 });
     }
 
-    private void AttemptLoginOpen(FirebaseUser user){
-        if (user != null) {
-            System.out.println("user NOT null");
-            // Name, email address, and profile photo Url
-            String name = user.getDisplayName();
-            String email = user.getEmail();
-
-            // Check if user's email is verified
-            boolean emailVerified = user.isEmailVerified();
-
-            System.out.println(name);
-            System.out.println(email);
-            System.out.println(emailVerified);
-
-            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                    .setDisplayName("Riderr name test update")
-                    .build();
-
-            user.updateProfile(profileUpdates)
-                    .addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                System.out.println("profile updated");
-                            }
-                        }
-                    });
-
+    private void AttemptLoginOpen(FirebaseUser u){
+        if (u != null) {
             FirebaseAuth.getInstance().signOut();
             final Intent loginIntent = new Intent(this, LoginActivity.class);
             startActivity(loginIntent);
             finish();
         } else {
-            System.out.println("user IS null");
+            System.out.println("returned null user");
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.riderrapp.riderr;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -9,20 +8,13 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 
-import android.view.MenuItem;
-
-import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -31,17 +23,12 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
-import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
-import com.mapbox.api.matrix.v1.MapboxMatrix;
-import com.mapbox.api.matrix.v1.models.MatrixResponse;
+
 import com.mapbox.geojson.Feature;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
 import com.mapbox.mapboxsdk.location.LocationComponentOptions;
@@ -51,30 +38,17 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.mapboxsdk.plugins.annotation.Symbol;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolManager;
-import com.mapbox.mapboxsdk.plugins.annotation.SymbolOptions;
-import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
-import com.mapbox.mapboxsdk.style.sources.GeoJsonOptions;
+
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
-import com.mapbox.mapboxsdk.utils.BitmapUtils;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+
 import com.mapbox.services.android.navigation.ui.v5.route.NavigationMapRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
-import androidx.drawerlayout.widget.DrawerLayout;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.appcompat.app.ActionBar;
-
-import android.view.Menu;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,86 +57,72 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import timber.log.Timber;
-
-import static android.graphics.BitmapFactory.decodeResource;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
-import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
-
 
 public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCallback, PermissionsListener {
-    // variables for adding location layer
-    private MapView mapView;
-    private MapboxMap mapboxMap;
-    // variables for adding location layer
-    private PermissionsManager permissionsManager;
-    private LocationComponent locationComponent;
-    // variables for calculating and drawing a route
-    private DirectionsRoute currentRoute;
+
     private static final String TAG = "ViewRidesActivity";
-    private NavigationMapRoute navigationMapRoute;
+    // variables for adding location layer
+    private MapView viewRidesMap;
+    private MapboxMap readyMap;
+    // variables for adding location layer
+    private PermissionsManager permMngr;
+    private LocationComponent userLocComp;
+    // variables for calculating and drawing a route
+    private DirectionsRoute dRoute;
+
+    private NavigationMapRoute navRoute;
     // variables needed to initialize navigation
-    private Button button, cancelRideBtn;
+    private Button startNavBtn, cancelRideBtn;
 
     private double lat = 0, lng = 0;
     private String pride = "", dride = "";
 
     private List<Point> wayPoints = new ArrayList<>();
-    private Map<String, Object> cData = new HashMap<>();
-    private Map<String, String> uData = new HashMap<>();
-    private Map<String, Object> qData = new HashMap<>();
+    private Map<String, Object> offeredRideMapSO = new HashMap<>();
+    private Map<String, String> rideDataMapSS = new HashMap<>();
+    private Map<String, Object> cancelRideDataMapSO = new HashMap<>();
 
-    private Map<String, Object> aData = new HashMap<>();
-    private Map<String, String> dData = new HashMap<>();
+    private Map<String, Object> cancelRideMapSO = new HashMap<>();
+    private Map<String, String> cancelRideInnerMapSS = new HashMap<>();
+
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
         Mapbox.getInstance(this, getString(R.string.access_token));
         setContentView(R.layout.activity_view_rides);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.colorPrimary));
         }
-        mapView = findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+        viewRidesMap = findViewById(R.id.viewRidesMap);
+        viewRidesMap.onCreate(instanceState);
+        viewRidesMap.getMapAsync(this);
     }
 
     @Override
-    public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-        this.mapboxMap = mapboxMap;
-        mapboxMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
+    public void onMapReady(@NonNull final MapboxMap readyMap) {
+        this.readyMap = readyMap;
+        readyMap.setStyle(new Style.Builder().fromUri("mapbox://styles/diqbal/ck743r90t2pt01io833c6fdpg"), new Style.OnStyleLoaded() {
             @Override
-            public void onStyleLoaded(@NonNull final Style style) {
-                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                String uid = fbuser.getUid();
+            public void onStyleLoaded(@NonNull final Style loadedStyle) {
+                String uid = currUser.getUid();
 
-                enableLocationComponent(style);
+                AccessLocComp(loadedStyle);
+                GetUserRide(loadedStyle, uid);
 
-                //addDestinationIconSymbolLayer(style);
-
-                GetUserRide(style, db, uid);
-
-                button = findViewById(R.id.startNavButton);
+                startNavBtn = findViewById(R.id.startNavButton);
                 cancelRideBtn = findViewById(R.id.cancelRideButton);
 
-                button.setOnClickListener(new View.OnClickListener() {
+                startNavBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        /*boolean simulateRoute = true;
-                        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-                                .directionsRoute(currentRoute)
-                                .shouldSimulateRoute(simulateRoute)
-                                .build();
-// Call this method with Context from within an Activity
-                        NavigationLauncher.startNavigation(ViewRidesActivity.this, options);*/
-                        Intent intent = new Intent(ViewRidesActivity.this, NavigationActivity.class);
+                        Intent navIntent = new Intent(ViewRidesActivity.this, NavigationActivity.class);
 
-                        intent.putExtra(NavigationActivity.RIDE_ID, dride);
+                        navIntent.putExtra(NavigationActivity.RIDE_ID, dride);
 
-                        startActivity(intent);
+                        startActivity(navIntent);
                     }
                 });
 
@@ -172,11 +132,6 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                         CancelRide();
                     }
                 });
-
-
-                //button.setEnabled(true);
-                //button.setVisibility(View.VISIBLE);
-                //button.setBackgroundResource(R.color.design_default_color_primary_dark);
             }
         });
     }
@@ -187,22 +142,19 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         TextView timeLabel = (TextView)findViewById(R.id.timeText);
         TextView destinationLabel = (TextView)findViewById(R.id.destText);
 
-        final String fullDriverName;
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference docRef = db.collection("users").document(d);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        DocumentReference userReference = dataStore.collection("users").document(d);
+        userReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        driverLabel.setText(driverLabel.getText() + document.getString("firstname") + " " + document.getString("lastname"));
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot userDoc = returnedTask.getResult();
+                    if (userDoc.exists()) {
+                        driverLabel.setText(driverLabel.getText() + userDoc.getString("firstname") + " " + userDoc.getString("lastname"));
                     } else {
-                        Log.d(TAG, "No such document");
+                        Log.d(TAG, "couldnt find user doc");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception ", returnedTask.getException());
                 }
             }
         });
@@ -212,74 +164,67 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         destinationLabel.setText(destinationLabel.getText() + dest);
     }
 
-    private void GetUserRide(final Style style, FirebaseFirestore db, String uid){
-        DocumentReference docRef = db.collection("users").document(uid);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    private void GetUserRide(final Style loadedStyle, String uid){
+        DocumentReference userReference = dataStore.collection("users").document(uid);
+        userReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        pride = document.getString("p-ride");
-                        //dride = document.getLong("longitude");
-                        dride = document.getString("d-ride");
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot userDoc = returnedTask.getResult();
+                    if (userDoc.exists()) {
+                        pride = userDoc.getString("p-ride");
+                        dride = userDoc.getString("d-ride");
 
                         if(dride != null) {
-                            button.setVisibility(View.VISIBLE);
+                            startNavBtn.setVisibility(View.VISIBLE);
                             cancelRideBtn.setVisibility(View.VISIBLE);
-                            SetRide(style, dride);
+                            SetRide(loadedStyle, dride);
                         }else if(pride != null){
-                            button.setVisibility(View.GONE);
+                            startNavBtn.setVisibility(View.GONE);
                             cancelRideBtn.setVisibility(View.VISIBLE);
-                            SetRide(style, pride);
+                            SetRide(loadedStyle, pride);
                         }else{
-                            button.setVisibility(View.GONE);
+                            startNavBtn.setVisibility(View.GONE);
                             cancelRideBtn.setVisibility(View.GONE);
                         }
-
-
                     } else {
-                        Log.d(TAG, "No such document");
+                        Log.d(TAG, "couldnt find user doc");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });
     }
 
     private void CancelRide(){
-        final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        final FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        DocumentReference docRef = db.collection("users").document(fbuser.getUid());
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        DocumentReference userReference = dataStore.collection("users").document(currUser.getUid());
+        userReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot userDoc = returnedTask.getResult();
+                    if (userDoc.exists()) {
                         if(dride != null){
-                            db.collection("OfferedRides").document(dride)
+                            dataStore.collection("OfferedRides").document(dride)
                                     .delete()
                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                         @Override
-                                        public void onSuccess(Void aVoid) {
-                                            Map<String, Object> user = new HashMap<>();
-                                            user.put("d-ride", null);
-                                            db.collection("users").document(fbuser.getUid())
-                                                    .update(user)
+                                        public void onSuccess(Void v) {
+                                            Map<String, Object> userMap = new HashMap<>();
+                                            userMap.put("d-ride", null);
+                                            dataStore.collection("users").document(currUser.getUid())
+                                                    .update(userMap)
                                                     .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                         @Override
-                                                        public void onSuccess(Void aVoid) {
-                                                            Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                        public void onSuccess(Void v) {
                                                             finish();
                                                         }
                                                     })
                                                     .addOnFailureListener(new OnFailureListener() {
                                                         @Override
                                                         public void onFailure(@NonNull Exception e) {
-                                                            Log.w(TAG, "Error writing document", e);
+                                                            Log.w(TAG, "Exception: ", e);
                                                         }
                                                     });
                                         }
@@ -287,112 +232,88 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                                     .addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-                                            Log.w(TAG, "Error deleting document", e);
+                                            Log.w(TAG, "Exception: ", e);
                                         }
                                     });
                         }
                         if(pride != null){
-                            DocumentReference docRef = db.collection("OfferedRides").document(pride);
-                            final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                            docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                            DocumentReference rideRef = dataStore.collection("OfferedRides").document(pride);
+                            rideRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                 @Override
-                                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                    if (task.isSuccessful()) {
-                                        DocumentSnapshot document = task.getResult();
-                                        if (document.exists()) {
-                                            aData = document.getData();
-                                            Log.d(TAG, "Danesh");
-                                            List<Map> d = (List<Map>) aData.get("passengers");
+                                public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                                    if (returnedTask.isSuccessful()) {
+                                        DocumentSnapshot rideDoc = returnedTask.getResult();
+                                        if (rideDoc.exists()) {
+                                            cancelRideMapSO = rideDoc.getData();
+                                            List<Map> d = (List<Map>) cancelRideMapSO.get("passengers");
                                             for(int i = 0; i < d.size(); i++){
-                                                dData = d.get(i);
-                                                if(dData.get("passenger").equals(fbuser.getUid())) {
-                                                    System.out.println("trophy " + dData.get("longitude"));
-                                                    String s = dData.get("longitude");
-                                                    String st = dData.get("latitude");
+                                                cancelRideInnerMapSS = d.get(i);
+                                                if(cancelRideInnerMapSS.get("passenger").equals(currUser.getUid())) {
+                                                    String s = cancelRideInnerMapSS.get("longitude");
+                                                    String st = cancelRideInnerMapSS.get("latitude");
 
-                                                    qData.put("passenger", fbuser.getUid());
-                                                    qData.put("longitude", s);
-                                                    qData.put("latitude", st);
-                                                    qData.put("rating", dData.get("rating"));
-                                                    qData.put("amountOfRatings", dData.get("amountOfRatings"));
+                                                    cancelRideDataMapSO.put("passenger", currUser.getUid());
+                                                    cancelRideDataMapSO.put("longitude", s);
+                                                    cancelRideDataMapSO.put("latitude", st);
+                                                    cancelRideDataMapSO.put("rating", cancelRideInnerMapSS.get("rating"));
+                                                    cancelRideDataMapSO.put("amountOfRatings", cancelRideInnerMapSS.get("amountOfRatings"));
 
-                                                    DocumentReference selectedRideRef = db.collection("OfferedRides").document(pride);
-                                                    selectedRideRef.update("passengers", FieldValue.arrayRemove(qData));
+                                                    DocumentReference selectedRideRef = dataStore.collection("OfferedRides").document(pride);
+                                                    selectedRideRef.update("passengers", FieldValue.arrayRemove(cancelRideDataMapSO));
                                                     selectedRideRef.update("vehicleCapacity", FieldValue.increment(1));
-                                                    Map<String, Object> user = new HashMap<>();
-                                                    user.put("p-ride", null);
-                                                    db.collection("users").document(fbuser.getUid())
-                                                            .update(user)
+                                                    Map<String, Object> userMap = new HashMap<>();
+                                                    userMap.put("p-ride", null);
+                                                    dataStore.collection("users").document(currUser.getUid())
+                                                            .update(userMap)
                                                             .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                                 @Override
-                                                                public void onSuccess(Void aVoid) {
-                                                                    Log.d(TAG, "DocumentSnapshot successfully written!");
+                                                                public void onSuccess(Void v) {
                                                                     finish();
                                                                 }
                                                             })
                                                             .addOnFailureListener(new OnFailureListener() {
                                                                 @Override
                                                                 public void onFailure(@NonNull Exception e) {
-                                                                    Log.w(TAG, "Error writing document", e);
+                                                                    Log.w(TAG, "cant update details", e);
                                                                 }
                                                             });
                                                 }
                                             }
                                         } else {
-                                            Log.d(TAG, "No such document");
+                                            Log.d(TAG, "ride doc cant be found");
                                         }
                                     } else {
-                                        Log.d(TAG, "get failed with ", task.getException());
+                                        Log.d(TAG, "Exception: ", returnedTask.getException());
                                     }
                                 }
                             });
-
-
-                            /*final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                            final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                            String uid = fbuser.getUid();
-
-                            qData.put("passenger", fbuser.getUid());
-                            qData.put("longitude", "-2.47694282411936");
-                            qData.put("latitude", "53.755799976191845");
-                            qData.put("rating", 3);
-                            qData.put("amountOfRatings", 2);
-
-                            //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
-                            DocumentReference selectedRideRef = db.collection("OfferedRides").document(pride);
-                            selectedRideRef.update("passengers", FieldValue.arrayRemove(qData));
-                            selectedRideRef.update("vehicleCapacity", FieldValue.increment(1));*/
                         }
                     } else {
-                        Log.d(TAG, "No such document set ride");
+                        Log.d(TAG, "cant get the ride");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });
     }
 
-    private void SetRide(final Style style, String rideid){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+    private void SetRide(final Style loadedStyle, String rideid){
+        DocumentReference rideReference = dataStore.collection("OfferedRides").document(rideid);
+        rideReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        SetTextViewText(document.getString("offeredBy"), document.getString("date"), document.getString("time"), document.getString("destination"));
-                        cData = document.getData();
-                        Log.d(TAG, "Danesh");
-                        List<Map> d = (List<Map>) cData.get("passengers");
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot rideDoc = returnedTask.getResult();
+                    if (rideDoc.exists()) {
+                        SetTextViewText(rideDoc.getString("offeredBy"), rideDoc.getString("date"), rideDoc.getString("time"), rideDoc.getString("destination"));
+                        offeredRideMapSO = rideDoc.getData();
+                        List<Map> d = (List<Map>) offeredRideMapSO.get("passengers");
                         for(int i = 0; i < d.size(); i++){
-                            uData = d.get(i);
+                            rideDataMapSS = d.get(i);
 
-                            System.out.println("trophy " + uData.get("longitude"));
-                            String s = uData.get("longitude");
-                            String st = uData.get("latitude");
+                            String s = rideDataMapSS.get("longitude");
+                            String st = rideDataMapSS.get("latitude");
                             Double l = Double.parseDouble(s);
                             Double lt = Double.parseDouble(st);
                             Point p = Point.fromLngLat(l, lt);
@@ -402,51 +323,27 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
 
                         }
 
-                        lat = document.getDouble("latitude");
-                        //dride = document.getLong("longitude");
-                        lng = document.getDouble("longitude");
+                        lat = rideDoc.getDouble("latitude");
+                        lng = rideDoc.getDouble("longitude");
 
+                        Point destPoint = Point.fromLngLat(lng, lat);
 
-                        Point destinationPoint = Point.fromLngLat(lng, lat);
+                        Point startPoint = null;
+                        if(userLocComp != null) {
+                            startPoint = Point.fromLngLat(userLocComp.getLastKnownLocation().getLongitude(), userLocComp.getLastKnownLocation().getLatitude());
 
-                        Point originPoint = null;
-                        if(locationComponent != null) {
-                            originPoint = Point.fromLngLat(locationComponent.getLastKnownLocation().getLongitude(),
-                                    locationComponent.getLastKnownLocation().getLatitude());
-
-                            GeoJsonSource source = mapboxMap.getStyle().getSourceAs("destination-source-id");
-                            if (source != null) {
-                                source.setGeoJson(Feature.fromGeometry(destinationPoint));
-                            }
-
-                            getRoute(originPoint, destinationPoint);
+                            MakeRoute(startPoint, destPoint);
                         }else{
-                            originPoint = Point.fromLngLat(0.1278, 51.5074);
+                            startPoint = Point.fromLngLat(0.1278, 51.5074);
                         }
-
-
                     } else {
-                        Log.d(TAG, "No such document set ride");
+                        Log.d(TAG, "cant get ride");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Excception: ", returnedTask.getException());
                 }
             }
         });
-    }
-
-    private void addDestinationIconSymbolLayer(@NonNull Style loadedMapStyle) {
-        loadedMapStyle.addImage("destination-icon-id",
-                decodeResource(this.getResources(), R.drawable.mapbox_marker_icon_default));
-        GeoJsonSource geoJsonSource = new GeoJsonSource("destination-source-id");
-        loadedMapStyle.addSource(geoJsonSource);
-        SymbolLayer destinationSymbolLayer = new SymbolLayer("destination-symbol-layer-id", "destination-source-id");
-        destinationSymbolLayer.withProperties(
-                iconImage("destination-icon-id"),
-                iconAllowOverlap(true),
-                iconIgnorePlacement(true)
-        );
-        loadedMapStyle.addLayer(destinationSymbolLayer);
     }
 
     private Long ConvertSecondsToMinutes(Double secs){
@@ -459,36 +356,34 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
         return Math.round(miles);
     }
 
-    private void getRoute(Point origin, Point destination) {
-        NavigationRoute.Builder bld = NavigationRoute.builder(this)
+    private void MakeRoute(Point start, Point end) {
+        NavigationRoute.Builder navRouteBld = NavigationRoute.builder(this)
                 .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
+                .origin(start)
                 .profile("driving")
-                .destination(destination);
+                .destination(end);
 
                 if(wayPoints.size() > 0) {
                     for (Point waypoint : wayPoints) {
-                        bld.addWaypoint(waypoint);
+                        navRouteBld.addWaypoint(waypoint);
                     }
                 }
 
-                bld.build()
+            navRouteBld.build()
                 .getRoute(new Callback<DirectionsResponse>() {
                     @Override
-                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-// You can get the generic HTTP info about the response
-                        Log.d(TAG, "Response code: " + response.code());
-                        if (response.body() == null) {
-                            Log.e(TAG, "No routes found, make sure you set the right user and access token.");
+                    public void onResponse(Call<DirectionsResponse> dCall, Response<DirectionsResponse> dRes) {
+                        if (dRes.body() == null) {
+                            Log.e(TAG, "routes body null maybe access token not set");
                             return;
-                        } else if (response.body().routes().size() < 1) {
-                            Log.e(TAG, "No routes found");
+                        } else if (dRes.body().routes().size() < 1) {
+                            Log.e(TAG, "routes size is less than 1");
                             return;
                         }
 
-                        currentRoute = response.body().routes().get(0);
-                        Long minutes = ConvertSecondsToMinutes(currentRoute.duration());
-                        Long miles = ConvertDistanceToMiles(currentRoute.distance());
+                        dRoute = dRes.body().routes().get(0);
+                        Long minutes = ConvertSecondsToMinutes(dRoute.duration());
+                        Long miles = ConvertDistanceToMiles(dRoute.distance());
 
                         TextView etaLabel = (TextView)findViewById(R.id.etaText);
                         TextView ejdLabel = (TextView)findViewById(R.id.ejdText);
@@ -496,75 +391,70 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                         etaLabel.setText(etaLabel.getText() + minutes.toString() + " minutes");
                         ejdLabel.setText(ejdLabel.getText() + miles.toString() + " miles");
 
-// Draw the route on the map
-                        if (navigationMapRoute != null) {
-                            //navigationMapRoute.removeRoute();
-                            navigationMapRoute.updateRouteArrowVisibilityTo(false);
+                        // Draw the route on the map
+                        if (navRoute != null) {
+                            navRoute.updateRouteArrowVisibilityTo(false);
                         } else {
-                            navigationMapRoute = new NavigationMapRoute(null, mapView, mapboxMap, R.style.NavigationMapRoute);
+                            navRoute = new NavigationMapRoute(null, viewRidesMap, readyMap, R.style.NavigationMapRoute);
                         }
-                        navigationMapRoute.addRoute(currentRoute);
+                        navRoute.addRoute(dRoute);
                     }
 
                     @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
+                    public void onFailure(Call<DirectionsResponse> dCall, Throwable t) {
+                        Log.e(TAG, "Thrown: " + t.getMessage());
                     }
                 });
     }
 
-    @SuppressWarnings( {"MissingPermission"})
-    private void enableLocationComponent(@NonNull Style loadedMapStyle) {
-
+    private void AccessLocComp(@NonNull Style loadedStyle) {
         // Check if permissions are enabled and if not request
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
-// Activate the MapboxMap LocationComponent to show user location
-// Adding in LocationComponentOptions is also an optional parameter
-            locationComponent = mapboxMap.getLocationComponent();
-            LocationComponentOptions customLocationComponentOptions = LocationComponentOptions.builder(this)
+            userLocComp = readyMap.getLocationComponent();
+            LocationComponentOptions styleLocComp = LocationComponentOptions.builder(this)
                     .elevation(5)
                     .accuracyAlpha(.6f)
                     .accuracyColor(ContextCompat.getColor(this, R.color.colorAccent))
                     .foregroundTintColor(ContextCompat.getColor(this, R.color.colorAccent))
                     .backgroundTintColor(ContextCompat.getColor(this, R.color.colorPrimary))
-                    .bearingTintColor(ContextCompat.getColor(this, R.color.colorAccent))   //DO ALL THIS WITH XML
+                    .bearingTintColor(ContextCompat.getColor(this, R.color.colorAccent))
                     .build();
 
-            LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                            .locationComponentOptions(customLocationComponentOptions)
+            LocationComponentActivationOptions locCompActivation =
+                    LocationComponentActivationOptions.builder(this, loadedStyle)
+                            .locationComponentOptions(styleLocComp)
                             .build();
-            locationComponent.activateLocationComponent(locationComponentActivationOptions);
-            locationComponent.setLocationComponentEnabled(true);
-// Set the component's camera mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
-            locationComponent.setCameraMode(CameraMode.TRACKING);
+
+            userLocComp.activateLocationComponent(locCompActivation);
+            userLocComp.setLocationComponentEnabled(true);
+
+            // Set the component's camera mode
+            userLocComp.setRenderMode(RenderMode.COMPASS);
+            userLocComp.setCameraMode(CameraMode.TRACKING);
         } else {
-            permissionsManager = new PermissionsManager(this);
-            permissionsManager.requestLocationPermissions(this);
+            permMngr = new PermissionsManager(this);
+            permMngr.requestLocationPermissions(this);
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    public void onRequestPermissionsResult(int reqCode, @NonNull String[] perms, @NonNull int[] grants) {
+        permMngr.onRequestPermissionsResult(reqCode, perms, grants);
     }
 
     @Override
-    public void onExplanationNeeded(List<String> permissionsRequested) {
-        if(permissionsRequested.get(0).equals("android.permission.ACCESS_FINE_LOCATION")) {
+    public void onExplanationNeeded(List<String> permsRequested) {
+        if(permsRequested.get(0).equals("android.permission.ACCESS_FINE_LOCATION")) {
             Toast.makeText(this, "Riderr needs to access your location.", Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
-    public void onPermissionResult(boolean permissionGranted) {
-        if (permissionGranted) {
-            enableLocationComponent(mapboxMap.getStyle());
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-            String uid = fbuser.getUid();
-            GetUserRide(mapboxMap.getStyle(), db, uid);
+    public void onPermissionResult(boolean permsGranted) {
+        if (permsGranted) {
+            AccessLocComp(readyMap.getStyle());
+            String uid = currUser.getUid();
+            GetUserRide(readyMap.getStyle(), uid);
         } else {
             Toast.makeText(this, "Please allow Riderr to see your location.", Toast.LENGTH_LONG).show();
             finish();
@@ -574,42 +464,42 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     @Override
     protected void onStart() {
         super.onStart();
-        mapView.onStart();
+        viewRidesMap.onStart();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mapView.onResume();
+        viewRidesMap.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        mapView.onPause();
+        viewRidesMap.onPause();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        mapView.onStop();
+        viewRidesMap.onStop();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        mapView.onSaveInstanceState(outState);
+        viewRidesMap.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mapView.onDestroy();
+        viewRidesMap.onDestroy();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        mapView.onLowMemory();
+        viewRidesMap.onLowMemory();
     }
 }

@@ -7,6 +7,7 @@ public class rideData {
     String offeredBy;
     String rideId;
     String price;
+
     public rideData(String place, String date, String time, String offeredBy, String rideId, String price) {
         this.place = place;
         this.date = date;

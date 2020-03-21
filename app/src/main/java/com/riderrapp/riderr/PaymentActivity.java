@@ -2,12 +2,16 @@ package com.riderrapp.riderr;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,37 +50,50 @@ public class PaymentActivity extends AppCompatActivity {
     public static final String DEST = "dest";
 
 
-    private static final String TAG = "FoundRidesActivity";
+    private static final String TAG = "PaymentActivity";
 
-    private Map<String, Object> uData = new HashMap<>();
-
-    private FirebaseAuth mAuth;
+    private Map<String, Object> rideMap = new HashMap<>();
 
     private String cT;
     final int REQUEST_CODE = 1;
-    AsyncHttpClient client = new AsyncHttpClient();
-
+    AsyncHttpClient paymentClient = new AsyncHttpClient();
     String price;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_payment);
-        ActionBar actionBar = getSupportActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
+    final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        client.get("https://riderr-test.herokuapp.com/checkouts/new", new TextHttpResponseHandler() {
+    @Override
+    protected void onCreate(Bundle instanceState) {
+        super.onCreate(instanceState);
+        setContentView(R.layout.activity_payment);
+        ActionBar topBar = getSupportActionBar();
+        topBar.setDisplayHomeAsUpEnabled(true);
+
+        final Button payBtn = (Button) findViewById(R.id.payBtn);
+        payBtn.setText("LOADING PAYMENT...");
+        payBtn.setEnabled(false);
+
+        paymentClient.get("https://riderr-test.herokuapp.com/checkouts/new", new TextHttpResponseHandler() {
             @Override
-            public void onSuccess(int statusCode, cz.msebera.android.httpclient.Header[] headers, String clientToken) {
+            public void onSuccess(int sCode, cz.msebera.android.httpclient.Header[] h, String clientToken) {
                 cT = clientToken;
-                //do this as the client token is returned as a string already then double quoted
                 cT = cT.replace("\"","");
-                System.out.println(cT);
+                payBtn.setText("PAY");
+                payBtn.setEnabled(true);
             }
 
             @Override
-            public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
+            public void onFailure(int sCode, Header[] h, String resString, Throwable t) {
+                AlertDialog errorDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
+                errorDialog.setMessage("Payment client could not load.");
+                errorDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"CLOSE", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dInterface, int num) {
+                        finish();
+                    }
+                });
 
+                errorDialog.show();
             }
         });
 
@@ -98,35 +115,44 @@ public class PaymentActivity extends AppCompatActivity {
     }
 
     public void onBraintreeSubmit(View v) {
-        DropInRequest dropInRequest = new DropInRequest()
-                .clientToken(cT);
-        //these two lines help take out gpay and paypal buttons
-        dropInRequest.disableGooglePayment();
-        dropInRequest.disablePayPal();
-        //dropInRequest.amount("25.00");
-        startActivityForResult(dropInRequest.getIntent(this), REQUEST_CODE);
+        DropInRequest req = new DropInRequest().clientToken(cT);
+        req.disableGooglePayment();
+        req.disablePayPal();
+        startActivityForResult(req.getIntent(this), REQUEST_CODE);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE) {
-            if (resultCode == RESULT_OK) {
-                DropInResult result = data.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
-                // use the result to update your UI and send the payment method nonce to your server
-                PaymentMethodNonce paymentMethodNonce = result.getPaymentMethodNonce();
+    protected void onActivityResult(int reqCode, int resCode, Intent d) {
+        super.onActivityResult(reqCode, resCode, d);
+        if (reqCode == REQUEST_CODE) {
+            if (resCode == RESULT_OK) {
+                DropInResult result = d.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
 
-                PaymentMethodType paymentMethodType = result.getPaymentMethodType();
+                PaymentMethodNonce pmn = result.getPaymentMethodNonce();
 
-                String nonce = (paymentMethodNonce != null ? paymentMethodNonce.getNonce() : null);
+                PaymentMethodType pmt = result.getPaymentMethodType();
 
-                //AddUserToRide();
-                postNonceToServer(nonce);
-            } else if (resultCode == RESULT_CANCELED) {
-                // the user canceled
+                String nonceForServer;
+                if(pmn != null){
+                    nonceForServer = pmn.getNonce();
+                }else{
+                    nonceForServer = null;
+                }
+
+                postNonceToServer(nonceForServer);
+            } else if (resCode == RESULT_CANCELED) {
+                AlertDialog cancelDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
+                cancelDialog.setMessage("Payment cancelled");
+                cancelDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"OK", new DialogInterface.OnClickListener(){
+                    @Override
+                    public void onClick(DialogInterface dInterface, int num) {
+                        finish();
+                    }
+                });
+
+                cancelDialog.show();
             } else {
-                // handle errors here, an exception may be available in
-                Exception error = (Exception) data.getSerializableExtra(DropInActivity.EXTRA_ERROR);
+                Exception error = (Exception) d.getSerializableExtra(DropInActivity.EXTRA_ERROR);
             }
         }
     }
@@ -138,71 +164,71 @@ public class PaymentActivity extends AppCompatActivity {
         long rating = (long)getIntent().getExtras().get(RATING);
         long amtOfRatings = (long)getIntent().getExtras().get(AMOUNT_OF_RATINGS);
 
-        final FirebaseFirestore db = FirebaseFirestore.getInstance();
-        final FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbuser.getUid();
 
-        uData.put("passenger", fbuser.getUid());
-        uData.put("longitude", lng);
-        uData.put("latitude", lat);
-        uData.put("rating", rating);
-        uData.put("amountOfRatings", amtOfRatings);
 
-        //TODO ADD THE USER DATA TO THE RIDE HERE AND DECREMENT RIDE VCAP
-        DocumentReference selectedRideRef = db.collection("OfferedRides").document(rideid);
-        selectedRideRef.update("passengers", FieldValue.arrayUnion(uData));
-        selectedRideRef.update("vehicleCapacity", FieldValue.increment(-1));
+        rideMap.put("passenger", currUser.getUid());
+        rideMap.put("longitude", lng);
+        rideMap.put("latitude", lat);
+        rideMap.put("rating", rating);
+        rideMap.put("amountOfRatings", amtOfRatings);
 
-        Map<String, Object> user = new HashMap<>();
-        user.put("p-ride", rideid);
+        DocumentReference rideReference = dataStore.collection("OfferedRides").document(rideid);
+        rideReference.update("passengers", FieldValue.arrayUnion(rideMap));
+        rideReference.update("vehicleCapacity", FieldValue.increment(-1));
 
-        db.collection("users").document(fbuser.getUid())
-                .update(user)
+        Map<String, Object> userMap = new HashMap<>();
+        userMap.put("p-ride", rideid);
+
+        dataStore.collection("users").document(currUser.getUid())
+                .update(userMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
+                    public void onSuccess(Void v) {
+                        Log.d(TAG, "Ride added to the user");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                        Log.w(TAG, "Exception: ", e);
                     }
                 });
 
-        Toast.makeText(PaymentActivity.this, "You have joined a ride which will take place on " + "rideDataList.get(position).date" + " at " + "rideDataList.get(position).time",
-                Toast.LENGTH_LONG).show();
+        Toast.makeText(PaymentActivity.this, "Awesome, you successfully joined the ride.", Toast.LENGTH_LONG).show();
         finish();
     }
 
-    void postNonceToServer(String nonce) {
+    void postNonceToServer(String n) {
+        paymentClient = new AsyncHttpClient();
 
-        //#######POST THE NONCE TO THE SERVER USING A DIFFERENT BUTTON
-        //JUST SAVE THE DETAILS THEN DO IT
+        RequestParams reqParameters = new RequestParams();
 
-        AsyncHttpClient client = new AsyncHttpClient();
+        reqParameters.put("payment_method_nonce", n);
+        reqParameters.put("amount", price);
 
-        RequestParams params = new RequestParams();
-
-        params.put("payment_method_nonce", nonce);
-        params.put("amount", price);
-
-        client.post("https://riderr-test.herokuapp.com/checkouts", params,
+        paymentClient.post("https://riderr-test.herokuapp.com/checkouts", reqParameters,
 
                 new AsyncHttpResponseHandler() {
                     @Override
-                    public void onSuccess(int statusCode, cz.msebera.android.httpclient.Header[] headers, byte[] b) {
-                        System.out.println(statusCode);
+                    public void onSuccess(int sCode, cz.msebera.android.httpclient.Header[] h, byte[] b) {
+                        System.out.println(sCode);
                         AddUserToRide();
                     }
 
                     @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] b, Throwable throwable) {
-                        System.out.println(statusCode);
+                    public void onFailure(int sCode, Header[] h, byte[] b, Throwable t) {
+                        AlertDialog paymentFailedDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
+                        paymentFailedDialog.setMessage("Sorry, it seems as though processing the payment failed");
+                        paymentFailedDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"OK", new DialogInterface.OnClickListener(){
+                            @Override
+                            public void onClick(DialogInterface dInterface, int num) {
+                                finish();
+                            }
+                        });
+
+                        paymentFailedDialog.show();
                     }
                 }
         );
-
     }
 }

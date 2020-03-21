@@ -1,86 +1,82 @@
 package com.riderrapp.riderr;
 
-import android.content.Intent;
-import android.graphics.Color;
+import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import androidx.recyclerview.widget.RecyclerView;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.graphics.drawable.Drawable;
-
-import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
-import java.util.Random;
 
 class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRidesViewHolder>{
 
-    private String[] captions;
-    private Listener listener;
+    private Listener foundRidesListener;
+    List<rideData> rideDataList;
 
     interface Listener{
-        void onClick(int position);
+        void onClick(int idx);
     }
 
-    public void setListener(Listener listener){
-        this.listener = listener;
+    public void setListener(Listener foundRidesListener){
+        this.foundRidesListener = foundRidesListener;
     }
 
-    List<rideData> rideDataList;
+
     public  FoundRidesAdapter(List<rideData> rideDataList){
         this.rideDataList = rideDataList;
     }
 
     @NonNull
     @Override
-    public FoundRidesViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View itemView = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.found_rides_card, viewGroup, false);
-        return new FoundRidesViewHolder(itemView);
+    public FoundRidesViewHolder onCreateViewHolder(@NonNull ViewGroup vg, int i) {
+        View aView = LayoutInflater.from(vg.getContext()).inflate(R.layout.found_rides_card, vg, false);
+        return new FoundRidesViewHolder(aView);
     }
 
     @Override
-    public void onBindViewHolder(FoundRidesViewHolder viewHolder, final int i) {
-        Button cview = viewHolder.b;
+    public void onBindViewHolder(FoundRidesViewHolder vh, final int i) {
+        Button cviewButton = vh.b;
         rideData data = rideDataList.get(i);
-        Random rnd = new Random();
-        int currentColor = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-        viewHolder.place.setText("Place: " + data.place);
-        viewHolder.date.setText("Date: " + data.date);
-        viewHolder.time.setText("Time: " + data.time);
-        viewHolder.price.setText("Price: " + data.price);
-        cview.setOnClickListener(new View.OnClickListener() {
+
+        vh.place.setText("Place: " + data.place);
+        vh.date.setText("Date: " + data.date);
+        vh.time.setText("Time: " + data.time);
+        vh.price.setText("Price: " + data.price);
+
+        cviewButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                if (listener != null) {
-                    listener.onClick(i);
+            public void onClick(View clickView) {
+                if (foundRidesListener != null) {
+                    foundRidesListener.onClick(i);
                 }
             }
         });
     }
+
     @Override
     public int getItemCount() {
         return rideDataList.size();
     }
+
     class FoundRidesViewHolder extends RecyclerView.ViewHolder {
         TextView place, date, time, price;
-        LinearLayout parent;
         CardView cv;
         Button b;
-        public FoundRidesViewHolder(View itemView) {
-            super(itemView);
-            b = itemView.findViewById(R.id.registerBtnLogin);
-            cv = itemView.findViewById(R.id.card_view);
-            parent = itemView.findViewById(R.id.parent);
-            place = itemView.findViewById(R.id.info_text);
-            date = itemView.findViewById(R.id.info_text2);
-            time = itemView.findViewById(R.id.info_text3);
-            price = itemView.findViewById(R.id.info_text4);
+        LinearLayout parent;
+
+        public FoundRidesViewHolder(View passedView) {
+            super(passedView);
+            b = passedView.findViewById(R.id.joinRideBtn);
+            cv = passedView.findViewById(R.id.rideCard);
+            parent = passedView.findViewById(R.id.parent);
+            place = passedView.findViewById(R.id.place);
+            date = passedView.findViewById(R.id.date);
+            time = passedView.findViewById(R.id.time);
+            price = passedView.findViewById(R.id.price);
         }
     }
 }

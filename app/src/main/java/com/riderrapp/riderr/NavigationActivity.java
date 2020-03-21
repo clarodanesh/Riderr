@@ -2,35 +2,20 @@ package com.riderrapp.riderr;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.content.DialogInterface;
 import android.location.Location;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.android.material.snackbar.Snackbar;
-import com.google.android.material.snackbar.SnackbarContentLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -44,11 +29,6 @@ import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.location.LocationComponent;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.Style;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
-import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
 import com.mapbox.services.android.navigation.ui.v5.NavigationView;
 import com.mapbox.services.android.navigation.ui.v5.NavigationViewOptions;
 import com.mapbox.services.android.navigation.ui.v5.OnNavigationReadyCallback;
@@ -60,7 +40,6 @@ import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,179 +49,149 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback,
-        NavigationListener, RouteListener, ProgressChangeListener {
+public class NavigationActivity extends AppCompatActivity implements OnNavigationReadyCallback, NavigationListener, RouteListener, ProgressChangeListener {
 
     private static final String TAG = "NavigationActivity";
-    private NavigationView navigationView;
-    private boolean dropoffDialogShown;
-    private Location lastKnownLocation;
-    private LocationListeningCallback callback = new LocationListeningCallback(this);
-    private LocationEngine locationEngine;
+    private NavigationView rideNavView;
+    private boolean dialogOpen;
+    private locListenCallback locListeningCallback = new locListenCallback(this);
+    private LocationEngine locEng;
     public static final String RIDE_ID = "rideId";
-    private List<String> arr;
-    private Map<String, Object> cData = new HashMap<>();
-    private Map<String, String> uData = new HashMap<>();
-    private Map<String, Long> lData = new HashMap<>();
+    private Map<String, Object> rideDocumentData = new HashMap<>();
+    private Map<String, String> userData = new HashMap<>();
 
-    private List<Point> points = new ArrayList<>();
+    private List<Point> routePoints = new ArrayList<>();
 
     private String rideid;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.Theme_AppCompat_NoActionBar);
-        super.onCreate(savedInstanceState);
-        Mapbox.getInstance(this, getString(R.string.access_token));
-        //points.add(Point.fromLngLat(-2.477901, 53.755266));
-        //points.add(Point.fromLngLat(-2.478621, 53.754781));
-        //points.add(Point.fromLngLat(-2.479508, 53.754138));
-        //points.add(Point.fromLngLat(-2.480254, 53.753245));
-        //points.add(Point.fromLngLat(-2.480653, 53.752739));
-        setContentView(R.layout.activity_navigation);
+    final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-        final String uid = fbuser.getUid();
+    @Override
+    protected void onCreate(Bundle instanceState) {
+        setTheme(R.style.Theme_AppCompat_NoActionBar);
+        super.onCreate(instanceState);
+        Mapbox.getInstance(this, getString(R.string.access_token));
+        setContentView(R.layout.activity_navigation);
 
         rideid = (String)getIntent().getExtras().get(RIDE_ID);
 
-        DocumentReference docRef = db.collection("OfferedRides").document(rideid);
+        DocumentReference docRef = dataStore.collection("OfferedRides").document(rideid);
         docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        cData = document.getData();
-                        Log.d(TAG, "Danesh");
-                        List<Map> d = (List<Map>) cData.get("passengers");
+            public void onComplete(@NonNull Task<DocumentSnapshot> returnedTask) {
+                if (returnedTask.isSuccessful()) {
+                    DocumentSnapshot rideDoc = returnedTask.getResult();
+                    if (rideDoc.exists()) {
+                        rideDocumentData = rideDoc.getData();
+                        List<Map> d = (List<Map>) rideDocumentData.get("passengers");
                         for(int i = 0; i < d.size(); i++){
-                            uData = d.get(i);
+                            userData = d.get(i);
 
-                            System.out.println("trophy " + uData.get("longitude"));
-                            String s = uData.get("longitude");
-                            String st = uData.get("latitude");
-                            Double l = Double.parseDouble(s);
-                            Double lt = Double.parseDouble(st);
-                            Point p = Point.fromLngLat(l, lt);
+                            String lngString = userData.get("longitude");
+                            String latString = userData.get("latitude");
+                            Double l = Double.parseDouble(lngString);
+                            Double lt = Double.parseDouble(latString);
 
-                            points.add(Point.fromLngLat(l, lt));
-
-                            System.out.println("tester" + p);
-
+                            routePoints.add(Point.fromLngLat(l, lt));
                         }
 
-                        //after all the waypoints have been added, need to se the final destination of the
-                        //whole journey here
-                        points.add(Point.fromLngLat(document.getDouble("longitude"), document.getDouble("latitude")));
+                        routePoints.add(Point.fromLngLat(rideDoc.getDouble("longitude"), rideDoc.getDouble("latitude")));
 
                         //navigation needs to be initialised
-                        navigationView.initialize(NavigationActivity.this);
+                        rideNavView.initialize(NavigationActivity.this);
                     } else {
-                        Log.d(TAG, "No such document");
+                        Log.d(TAG, "Cant get ride data");
                     }
                 } else {
-                    Log.d(TAG, "get failed with ", task.getException());
+                    Log.d(TAG, "Exception: ", returnedTask.getException());
                 }
             }
         });
 
-        locationEngine = LocationEngineProvider.getBestLocationEngine(this);
-        locationEngine.getLastLocation(callback);
+        locEng = LocationEngineProvider.getBestLocationEngine(this);
+        locEng.getLastLocation(locListeningCallback);
 
-        navigationView = findViewById(R.id.navigationView);
-        navigationView.onCreate(savedInstanceState);
+        rideNavView = findViewById(R.id.rideNavView);
+        rideNavView.onCreate(instanceState);
 
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        navigationView.onStart();
+        rideNavView.onStart();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        navigationView.onResume();
+        rideNavView.onResume();
     }
 
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        navigationView.onLowMemory();
+        rideNavView.onLowMemory();
     }
 
     @Override
     public void onBackPressed() {
-        // If the navigation view didn't need to do anything, call super
-        if (!navigationView.onBackPressed()) {
+        if (!rideNavView.onBackPressed()) {
             super.onBackPressed();
         }
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        navigationView.onSaveInstanceState(outState);
+        rideNavView.onSaveInstanceState(outState);
         super.onSaveInstanceState(outState);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        navigationView.onRestoreInstanceState(savedInstanceState);
+        rideNavView.onRestoreInstanceState(savedInstanceState);
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        navigationView.onPause();
+        rideNavView.onPause();
     }
 
     @Override
     public void onStop() {
         super.onStop();
-
-        if (locationEngine != null) {
-            locationEngine.removeLocationUpdates(callback);
+        if (locEng != null) {
+            locEng.removeLocationUpdates(locListeningCallback);
         }
-
-        navigationView.onStop();
+        rideNavView.onStop();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        navigationView.onDestroy();
+        rideNavView.onDestroy();
     }
 
     @Override
     public void onNavigationReady(boolean isRunning) {
-        fetchRoute(getLastKnownLocation(), points.remove(0));
+        MakeRoute(GetLatestLocation(), routePoints.remove(0));
     }
 
     @Override
-    public void onCancelNavigation() {
-        // Navigation canceled, finish the activity
-        finish();
-        //showRatingDialog();
-        //finish();
+    public void onFailedReroute(String errorMessage) {
+
     }
 
     @Override
     public void onNavigationFinished() {
-        // Intentionally empty
+
     }
 
     @Override
-    public void onNavigationRunning() {
-        // Intentionally empty
-    }
-
-    @Override
-    public boolean allowRerouteFrom(Point offRoutePoint) {
-        return true;
+    public void onCancelNavigation() {
+        finish();
     }
 
     @Override
@@ -256,275 +205,149 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
     }
 
     @Override
-    public void onFailedReroute(String errorMessage) {
+    public void onNavigationRunning() {
+
+    }
+
+    @Override
+    public boolean allowRerouteFrom(Point offRoutePoint) {
+        return true;
+    }
+
+    @Override
+    public void onProgressChange(Location location, RouteProgress routeProgress) {
 
     }
 
     @Override
     public void onArrival() {
-        if (!dropoffDialogShown && !points.isEmpty()) {
-            showDropoffDialog();
-            dropoffDialogShown = true; // Accounts for multiple arrival events
+        if (!dialogOpen && !routePoints.isEmpty()) {
+            OpenArrivalDialog();
+            dialogOpen = true;
             Toast.makeText(this, "You have arrived!", Toast.LENGTH_SHORT).show();
-        }else if(!dropoffDialogShown && points.isEmpty()){
-            //TODO show the last dialog and then stop navigation to stop calling on arrival again and again
-            showLastDialog();
+        }else if(!dialogOpen && routePoints.isEmpty()){
+            ShowLastDialog();
             SetRideToCompleted();
-            stopNavigation();
+            StopNavView();
         }
     }
 
-    @Override
-    public void onProgressChange(Location location, RouteProgress routeProgress) {
-        lastKnownLocation = location;
-    }
-
-    private void startNavigation(DirectionsRoute directionsRoute) {
+    private void StartNavView(DirectionsRoute directionsRoute) {
         NavigationViewOptions navigationViewOptions = setupOptions(directionsRoute);
-        navigationView.startNavigation(navigationViewOptions);
+        rideNavView.startNavigation(navigationViewOptions);
     }
 
-    private void stopNavigation() {
-        navigationView.stopNavigation();
+    private void StopNavView() {
+        rideNavView.stopNavigation();
     }
 
-    private void showDropoffDialog() {
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage(getString(R.string.dropoff_dialog_text));
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"YES",new DialogInterface.OnClickListener(){
+    private void OpenArrivalDialog() {
+        AlertDialog arrivalDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        arrivalDialog.setMessage("Navigate to next destination?");
+        arrivalDialog.setButton(AlertDialog.BUTTON_POSITIVE,"YES",new DialogInterface.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int in) {
-                fetchRoute(getLastKnownLocation(), points.remove(0));
+            public void onClick(DialogInterface dInterface, int num) {
+                MakeRoute(GetLatestLocation(), routePoints.remove(0));
             }
         });
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"NO",new DialogInterface.OnClickListener(){
+        arrivalDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"NO",new DialogInterface.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int in) {
+            public void onClick(DialogInterface dInterface, int num) {
                 finish();
             }
         });
 
-        alertDialog.show();
+        arrivalDialog.show();
     }
 
-    private void showLastDialog() {
-        //TODO update ride status here to completed, so that every user that loads again on the ride has to set a rating for therid
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("The ride has come to an end");
-        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"FINISH RIDE",new DialogInterface.OnClickListener(){
+    private void ShowLastDialog() {
+        AlertDialog finalDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
+        finalDialog.setMessage("The ride has come to an end");
+        finalDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"FINISH RIDE",new DialogInterface.OnClickListener(){
             @Override
-            public void onClick(DialogInterface dialog, int in) {
+            public void onClick(DialogInterface dInterface, int num) {
                 finish();
             }
         });
 
-        alertDialog.show();
+        finalDialog.show();
     }
 
-    private void showRatingDialog() {
-        final EditText input = new EditText(this);
-
-        AlertDialog alertDialog = new AlertDialog.Builder(new ContextThemeWrapper(this,R.style.NavAlerts)).create();
-        alertDialog.setMessage("Rate your passengers (0-5)");
-        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"SUBMIT RATING",new DialogInterface.OnClickListener(){
-            @Override
-            public void onClick(DialogInterface dialog, int in) {
-                //finish();
-                String ratingAsString;
-                final int ratingAsInt;
-                ratingAsString = input.getText().toString();
-                ratingAsInt = Integer.parseInt(ratingAsString);
-                if(ratingAsInt >= 0 && ratingAsInt <= 5){
-                    final FirebaseFirestore db = FirebaseFirestore.getInstance();
-                    FirebaseUser fbuser = FirebaseAuth.getInstance().getCurrentUser();
-                    final String uid = fbuser.getUid();
-
-                    DocumentReference docRef = db.collection("OfferedRides").document(rideid);
-                    docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                if (document.exists()) {
-                                    cData = document.getData();
-                                    Log.d(TAG, "Danesh");
-                                    List<Map> d = (List<Map>) cData.get("passengers");
-                                    for(int i = 0; i < d.size(); i++){
-                                        uData = d.get(i);
-                                        lData = d.get(i);
-                                        final String userId = uData.get("passenger");
-                                        long rating = lData.get("rating");
-                                        long amtOfRatings = lData.get("amountOfRatings");
-                                        final long amtOfRatingsIncludingThis = amtOfRatings + 1;
-                                        final long ratingToAddToDB;
-                                        final float ratingBeforeRounding;
-                                        final long accumulatedRating;
-
-                                        if(rating == -1){
-                                            ratingToAddToDB = ratingAsInt / 1;
-                                        }else{
-                                            accumulatedRating = amtOfRatings * rating;
-                                            ratingBeforeRounding = ((float)ratingAsInt + (float)accumulatedRating) / (float)amtOfRatingsIncludingThis;
-                                            ratingToAddToDB = Math.round(ratingBeforeRounding);
-                                        }
-
-                                        DocumentReference docRef = db.collection("users").document(userId);
-                                        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                                                if (task.isSuccessful()) {
-                                                    DocumentSnapshot document = task.getResult();
-                                                    if (document.exists()) {
-                                                        Map<String, Object> user = new HashMap<>();
-                                                        user.put("rating", ratingToAddToDB);
-                                                        user.put("amountOfRatings", amtOfRatingsIncludingThis);
-
-                                                        db.collection("users").document(userId)
-                                                                .update(user)
-                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                    @Override
-                                                                    public void onSuccess(Void aVoid) {
-                                                                        Log.d(TAG, "USER RATINGS UPDATED");
-                                                                    }
-                                                                })
-                                                                .addOnFailureListener(new OnFailureListener() {
-                                                                    @Override
-                                                                    public void onFailure(@NonNull Exception e) {
-                                                                        Log.w(TAG, "Error writing document", e);
-                                                                    }
-                                                                });
-                                                    } else {
-                                                        Log.d(TAG, "No such document");
-                                                    }
-                                                } else {
-                                                    Log.d(TAG, "get failed with ", task.getException());
-                                                }
-                                            }
-                                        });
-
-                                    }
-
-                                    //after all the waypoints have been added, need to se the final destination of the
-                                    //whole journey here
-                                    points.add(Point.fromLngLat(document.getDouble("longitude"), document.getDouble("latitude")));
-
-                                    //navigation needs to be initialised
-                                    navigationView.initialize(NavigationActivity.this);
-                                } else {
-                                    Log.d(TAG, "No such document");
-                                }
-                            } else {
-                                Log.d(TAG, "get failed with ", task.getException());
-                            }
+    private void MakeRoute(Point startPoint, Point destPoint) {
+        NavigationRoute.builder(this)
+                .accessToken(Mapbox.getAccessToken())
+                .origin(startPoint)
+                .destination(destPoint)
+                .alternatives(true)
+                .build()
+                .getRoute(new Callback<DirectionsResponse>() {
+                    @Override
+                    public void onResponse(@NotNull Call<DirectionsResponse> directionCall, @NotNull Response<DirectionsResponse> directionResponse) {
+                        DirectionsResponse dResponse = directionResponse.body();
+                        if (dResponse != null && !dResponse.routes().isEmpty()) {
+                            StartNavView(dResponse.routes().get(0));
                         }
-                    });
-                }else{
-                    Snackbar ratingSB = Snackbar.make(navigationView, "You need to enter a number on the scale 0-5", Snackbar.LENGTH_LONG);
-                    ratingSB.getView().setBackgroundColor(ContextCompat.getColor(NavigationActivity.this, R.color.colorAccent));
-                    View view = ratingSB.getView();
-                    TextView tv = (TextView) view.findViewById((com.google.android.material.R.id.snackbar_text));
-                    tv.setTextColor(ContextCompat.getColor(NavigationActivity.this, R.color.colorPrimary));
-                    ratingSB.show();
-                }
-            }
-        });
+                    }
 
-
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        input.setLayoutParams(lp);
-        alertDialog.setView(input);
-
-        ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.colorAccent));
-        ViewCompat.setBackgroundTintList(input, colorStateList);
-        input.setTextColor(colorStateList);
-
-        alertDialog.setCancelable(false);
-        alertDialog.show();
+                    @Override
+                    public void onFailure(Call<DirectionsResponse> directionCall, Throwable t) {
+                        Log.e(TAG, "Thrown: " + t.getMessage());
+                    }
+                });
     }
 
     private void SetRideToCompleted(){
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
         Map<String, Object> rideMap = new HashMap<>();
         rideMap.put("completed", true);
 
-        db.collection("OfferedRides").document(rideid)
+        dataStore.collection("OfferedRides").document(rideid)
                 .update(rideMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
-                    public void onSuccess(Void aVoid) {
+                    public void onSuccess(Void v) {
                         Log.d(TAG, "USER RATINGS UPDATED");
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                        Log.w(TAG, "Update failed in SetRideToCompleted();", e);
                     }
                 });
     }
 
-    private void fetchRoute(Point origin, Point destination) {
-        NavigationRoute.builder(this)
-                .accessToken(Mapbox.getAccessToken())
-                .origin(origin)
-                .destination(destination)
-                .alternatives(true)
-                .build()
-                .getRoute(new Callback<DirectionsResponse>() {
-                    @Override
-                    public void onResponse(@NotNull Call<DirectionsResponse> call, @NotNull Response<DirectionsResponse> response) {
-                        DirectionsResponse directionsResponse = response.body();
-                        if (directionsResponse != null && !directionsResponse.routes().isEmpty()) {
-                            startNavigation(directionsResponse.routes().get(0));
-                        }
-                    }
+    private NavigationViewOptions setupOptions(DirectionsRoute dRoute) {
+        dialogOpen = false;
 
-                    @Override
-                    public void onFailure(Call<DirectionsResponse> call, Throwable throwable) {
-                        Log.e(TAG, "Error: " + throwable.getMessage());
-                    }
-                });
-    }
-
-    private NavigationViewOptions setupOptions(DirectionsRoute directionsRoute) {
-        dropoffDialogShown = false;
-
-        NavigationViewOptions.Builder options = NavigationViewOptions.builder();
-        options.directionsRoute(directionsRoute)
+        NavigationViewOptions.Builder navBuilderOptions = NavigationViewOptions.builder();
+        navBuilderOptions.directionsRoute(dRoute)
                 .navigationListener(this)
                 .progressChangeListener(this)
-                .routeListener(this);
-                //.shouldSimulateRoute(true);
-        return options.build();
+                .routeListener(this)
+                .shouldSimulateRoute(true);
+        return navBuilderOptions.build();
     }
 
-    private Point getLastKnownLocation() {
-        return Point.fromLngLat(callback.lastLocation.getLongitude(), callback.lastLocation.getLatitude());
+    private Point GetLatestLocation() {
+        return Point.fromLngLat(locListeningCallback.lastLoc.getLongitude(), locListeningCallback.lastLoc.getLatitude());
     }
 
-    private static class LocationListeningCallback
-            implements LocationEngineCallback<LocationEngineResult> {
+    private static class locListenCallback implements LocationEngineCallback<LocationEngineResult> {
 
-        //private final WeakReference<MainActivity> activityWeakReference;
-        public Location lastLocation;
+        public Location lastLoc;
 
-        LocationListeningCallback(NavigationActivity activity) {
-            //this.activityWeakReference = new WeakReference<>(activity);
+        locListenCallback(NavigationActivity activity) {
+
         }
 
         @Override
-        public void onSuccess(LocationEngineResult result) {
-            // The LocationEngineCallback interface's method which fires when the device's location has changed.
-            lastLocation = result.getLastLocation();
+        public void onSuccess(LocationEngineResult res) {
+            lastLoc = res.getLastLocation();
         }
 
         @Override
         public void onFailure(@NonNull Exception exception) {
-
-            // The LocationEngineCallback interface's method which fires when the device's location can not be captured
-
+            Log.d(TAG, "Exception: ", exception);
         }
     }
 }
