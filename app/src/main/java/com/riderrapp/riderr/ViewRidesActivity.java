@@ -149,7 +149,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 if (returnedTask.isSuccessful()) {
                     DocumentSnapshot userDoc = returnedTask.getResult();
                     if (userDoc.exists()) {
-                        driverLabel.setText(driverLabel.getText() + userDoc.getString("firstname") + " " + userDoc.getString("lastname"));
+                        driverLabel.setText("Driver: " + userDoc.getString("firstname") + " " + userDoc.getString("lastname"));
                     } else {
                         Log.d(TAG, "couldnt find user doc");
                     }
@@ -159,9 +159,9 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
             }
         });
 
-        dateLabel.setText(dateLabel.getText() + dt);
-        timeLabel.setText(timeLabel.getText() + t);
-        destinationLabel.setText(destinationLabel.getText() + dest);
+        dateLabel.setText("Date: " + dt);
+        timeLabel.setText("Time: " + t);
+        destinationLabel.setText("Destination: " + dest);
     }
 
     private void GetUserRide(final Style loadedStyle, String uid){
