@@ -39,6 +39,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class PaymentActivity extends AppCompatActivity {
 
+    //member variables for the payment activity class
     public static final String LONGITUDE = "lng";
     public static final String LATITUDE = "lat";
     public static final String RATING = "rating";
@@ -48,17 +49,12 @@ public class PaymentActivity extends AppCompatActivity {
     public static final String TIME = "time";
     public static final String DATE = "date";
     public static final String DEST = "dest";
-
-
     private static final String TAG = "PaymentActivity";
-
     private Map<String, Object> rideMap = new HashMap<>();
-
     private String cT;
     final int REQUEST_CODE = 1;
     AsyncHttpClient paymentClient = new AsyncHttpClient();
     String price;
-
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -69,21 +65,28 @@ public class PaymentActivity extends AppCompatActivity {
         ActionBar topBar = getSupportActionBar();
         topBar.setDisplayHomeAsUpEnabled(true);
 
+        //payment button needs to be set to button object
         final Button payBtn = (Button) findViewById(R.id.payBtn);
+        //whilst payment is loading set the text to this and then disable the button
         payBtn.setText("LOADING PAYMENT...");
         payBtn.setEnabled(false);
 
+        //BRAINTREE PAYMENT API SANDBOX VERSION
+        //need to send a get request tp the demo server to get a client token for payments
         paymentClient.get("https://riderr-test.herokuapp.com/checkouts/new", new TextHttpResponseHandler() {
             @Override
             public void onSuccess(int sCode, cz.msebera.android.httpclient.Header[] h, String clientToken) {
+                //onsucess need to set the client token to a variable
                 cT = clientToken;
                 cT = cT.replace("\"","");
+                //set the payment button text to pay so user knows and set enabled to true
                 payBtn.setText("PAY");
                 payBtn.setEnabled(true);
             }
 
             @Override
             public void onFailure(int sCode, Header[] h, String resString, Throwable t) {
+                //if the payment client fails then show a dialog
                 AlertDialog errorDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
                 errorDialog.setMessage("Payment client could not load.");
                 errorDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"CLOSE", new DialogInterface.OnClickListener(){
@@ -97,8 +100,10 @@ public class PaymentActivity extends AppCompatActivity {
             }
         });
 
+        //get the price from found rides activity
         price = (String)getIntent().getExtras().get(PRICE);
 
+        //populate the text views on the payment activity
         PopulateTextViews();
     }
 
@@ -108,29 +113,36 @@ public class PaymentActivity extends AppCompatActivity {
         TextView timeLabel = (TextView)findViewById(R.id.TimeLabel);
         TextView priceLabel = (TextView)findViewById(R.id.PriceLabel);
 
+        //set the text using the details from the found rides activity payment intent
         destLabel.setText((String)getIntent().getExtras().get(DEST));
         dateLabel.setText((String)getIntent().getExtras().get(DATE));
         timeLabel.setText((String)getIntent().getExtras().get(TIME));
         priceLabel.setText("£ " + (String)getIntent().getExtras().get(PRICE));
     }
 
+    //BRAINTREE API METHOD
+    //method from the braintree api used to open the drop in ui
     public void onBraintreeSubmit(View v) {
         DropInRequest req = new DropInRequest().clientToken(cT);
-        req.disableGooglePayment();
+        req.disableGooglePayment(); //just want to see card method so remove paypal and googlepay
         req.disablePayPal();
+        //open the drop in ui
         startActivityForResult(req.getIntent(this), REQUEST_CODE);
     }
 
     @Override
     protected void onActivityResult(int reqCode, int resCode, Intent d) {
         super.onActivityResult(reqCode, resCode, d);
+        //if the result was ok then need to send the nonce to the server
         if (reqCode == REQUEST_CODE) {
             if (resCode == RESULT_OK) {
                 DropInResult result = d.getParcelableExtra(DropInResult.EXTRA_DROP_IN_RESULT);
 
+                //get the nonce to send to the server
                 PaymentMethodNonce pmn = result.getPaymentMethodNonce();
 
-                PaymentMethodType pmt = result.getPaymentMethodType();
+                //could use this to get a drawable to show the card type
+                //PaymentMethodType pmt = result.getPaymentMethodType();
 
                 String nonceForServer;
                 if(pmn != null){
@@ -139,8 +151,10 @@ public class PaymentActivity extends AppCompatActivity {
                     nonceForServer = null;
                 }
 
-                postNonceToServer(nonceForServer);
+                //send the nonce to the server
+                SendNonceToServer(nonceForServer);
             } else if (resCode == RESULT_CANCELED) {
+                //if the user cancels the payment ui then show a dialog
                 AlertDialog cancelDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
                 cancelDialog.setMessage("Payment cancelled");
                 cancelDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"OK", new DialogInterface.OnClickListener(){
@@ -157,6 +171,7 @@ public class PaymentActivity extends AppCompatActivity {
         }
     }
 
+    //Once the user completes the payment then add the user to the ride and the ride to the user
     public void AddUserToRide(){
         String rideid = (String)getIntent().getExtras().get(RIDE_ID);
         String lng = (String)getIntent().getExtras().get(LONGITUDE);
@@ -165,7 +180,7 @@ public class PaymentActivity extends AppCompatActivity {
         long amtOfRatings = (long)getIntent().getExtras().get(AMOUNT_OF_RATINGS);
 
 
-
+        //add the user details to the map
         rideMap.put("passenger", currUser.getUid());
         rideMap.put("longitude", lng);
         rideMap.put("latitude", lat);
@@ -179,6 +194,7 @@ public class PaymentActivity extends AppCompatActivity {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("p-ride", rideid);
 
+        //update the ride with the user details
         dataStore.collection("users").document(currUser.getUid())
                 .update(userMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -198,25 +214,30 @@ public class PaymentActivity extends AppCompatActivity {
         finish();
     }
 
-    void postNonceToServer(String n) {
+    //send the nonce to the server so the user can be added to the ride
+    void SendNonceToServer(String n) {
         paymentClient = new AsyncHttpClient();
 
+        //need to create parameters that will contain a payment method nonce and amount
         RequestParams reqParameters = new RequestParams();
 
         reqParameters.put("payment_method_nonce", n);
         reqParameters.put("amount", price);
 
+        //post the nonce to the server
         paymentClient.post("https://riderr-test.herokuapp.com/checkouts", reqParameters,
 
                 new AsyncHttpResponseHandler() {
                     @Override
                     public void onSuccess(int sCode, cz.msebera.android.httpclient.Header[] h, byte[] b) {
                         System.out.println(sCode);
+                        //add the user to the ride
                         AddUserToRide();
                     }
 
                     @Override
                     public void onFailure(int sCode, Header[] h, byte[] b, Throwable t) {
+                        //if the nonce being sent to the server was failed then show a dialog
                         AlertDialog paymentFailedDialog = new AlertDialog.Builder(new ContextThemeWrapper(PaymentActivity.this, R.style.NavAlerts)).create();
                         paymentFailedDialog.setMessage("Sorry, it seems as though processing the payment failed");
                         paymentFailedDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"OK", new DialogInterface.OnClickListener(){

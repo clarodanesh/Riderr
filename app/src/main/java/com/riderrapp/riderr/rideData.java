@@ -1,5 +1,7 @@
 package com.riderrapp.riderr;
 
+//rideData class which will hold the ride data and then will be put into the ride data list
+//will be used to hold data to populate foundrides activity cardviews
 public class rideData {
     String date;
     String time;

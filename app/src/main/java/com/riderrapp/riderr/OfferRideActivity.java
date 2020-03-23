@@ -48,15 +48,12 @@ import java.util.Map;
 
 public class OfferRideActivity extends AppCompatActivity{
 
+    //member variables for the offerrideactivity class
     private static final String TAG = "OfferRideActivity";
-
-    //creating variables for buttons, textview and integers to use
     Button pickDateBtn, pickTimeBtn;
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
     private String fullDate, fullTime, destination;
-
-    //Mapbox places plugin implementation
     private static final int RC_AC = 1;
     private String country, dateTimeStamp, offeredBy, place, region, placeName;
     private double longitude, latitude;
@@ -64,7 +61,6 @@ public class OfferRideActivity extends AppCompatActivity{
     private String rprice;
     private String p, d, carMake, carReg, carPrice;
     private long carSeats;
-
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -74,10 +70,12 @@ public class OfferRideActivity extends AppCompatActivity{
         setContentView(R.layout.activity_offer_ride);
         ActionBar topBar = getSupportActionBar();
         topBar.setDisplayHomeAsUpEnabled(true);
+        //will be using the mapbox api so need to get an instance using my access token
         Mapbox.getInstance(this, getString(R.string.access_token));
 
         String uid = currUser.getUid();
 
+        //need to get the user details from the db
         DocumentReference userReference = dataStore.collection("users").document(uid);
         userReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -85,6 +83,7 @@ public class OfferRideActivity extends AppCompatActivity{
                 if (returnedTask.isSuccessful()) {
                     DocumentSnapshot userDoc = returnedTask.getResult();
                     if (userDoc.exists()) {
+                        //set the details to the member variables for use later
                         p = userDoc.getString("p-ride");
                         d = userDoc.getString("d-ride");
                         carMake = userDoc.getString("car-make");
@@ -100,6 +99,7 @@ public class OfferRideActivity extends AppCompatActivity{
             }
         });
 
+        //when the offer ride button is pressed need to send the data to server and then close the activity
         final Button offerRideBtn = (Button) findViewById(R.id.offerRideBtn);
         offerRideBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -123,13 +123,13 @@ public class OfferRideActivity extends AppCompatActivity{
 
         pickDateBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                // need to get the year month and day of the date
+                //need to get the year month and day of the date
                 final Calendar c = Calendar.getInstance();
                 theYear = c.get(Calendar.YEAR);
                 theMonth = c.get(Calendar.MONTH);
                 theDay = c.get(Calendar.DAY_OF_MONTH);
 
-                // handle date picker dialogue here by launching it
+                //handle date picker dialogue
                 DatePickerDialog dpDialog = new DatePickerDialog(OfferRideActivity.this,
                         new DatePickerDialog.OnDateSetListener() {
                             @Override
@@ -166,14 +166,17 @@ public class OfferRideActivity extends AppCompatActivity{
         fullTime = "";
         destination = "";
 
+        //need to get the user details and then build the destination search
         GetUserDetails();
         BuildDestSearch();
     }
 
+    //need to make an intent which will return a result
     private void BuildDestSearch() {
         findViewById(R.id.offerRideTxtBox).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //Need to build the intent which will filter the country and only 10 results at a time
                 Intent destinationSearchIntent = new PlaceAutocomplete.IntentBuilder()
                         .accessToken(getString(R.string.access_token))
                         .placeOptions(PlaceOptions.builder()
@@ -184,14 +187,17 @@ public class OfferRideActivity extends AppCompatActivity{
                                 .country("GB")
                                 .build(PlaceOptions.MODE_FULLSCREEN))
                         .build(OfferRideActivity.this);
+                //open the activity and wait for a result
                 startActivityForResult(destinationSearchIntent, RC_AC);
             }
         });
     }
 
+    //activity result from before which will now be used to set details for the ride
     @Override
     protected void onActivityResult(int reqCode, int resCode, Intent d) {
         super.onActivityResult(reqCode, resCode, d);
+        //if the result was oke then i can use the returned data using a carmen feature
         if (resCode == Activity.RESULT_OK && reqCode == RC_AC) {
             EditText offerRideTxtBox = (EditText)findViewById(R.id.offerRideTxtBox);
 
@@ -207,7 +213,8 @@ public class OfferRideActivity extends AppCompatActivity{
 
             offerRideTxtBox.setText(destination);
 
-            //to access the carmen feature selectedCarmenFeature.context().get(1).id or .text and whatnot;
+            //to access the carmen feature selectedCarmenFeature.context().get(1).id or .text etc...;
+            //need to iterate through the result and set the region country and place
             if(selectedDest.context().size() > 0){
                 for(int i = 0; i < selectedDest.context().size(); i++){
                     if(selectedDest.context().get(i).id().contains("region")){
@@ -223,11 +230,14 @@ public class OfferRideActivity extends AppCompatActivity{
                     }
                 }
             }
+            //set date time stamp of when the ride was made
             Date dtStamp = Calendar.getInstance().getTime();
             dateTimeStamp = dtStamp.toString();
         }
     }
 
+    //need to check if the date selected by the user is in the future
+    //cant make a ride which is older
     private boolean IsDateFuture(String date){
         Date calTime = Calendar.getInstance().getTime();
         System.out.println("CAL TIME: " + calTime);
@@ -244,6 +254,7 @@ public class OfferRideActivity extends AppCompatActivity{
         int currMonth = Integer.parseInt(currDate[1]);
         int currDay = Integer.parseInt(currDate[0]);
 
+        //checking the year then month then day if ever false then show a toast
         if(userYear >= currYear){
             if(userMonth >= currMonth){
                 if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay)){
@@ -260,9 +271,9 @@ public class OfferRideActivity extends AppCompatActivity{
             Toast.makeText(OfferRideActivity.this, "The date you selected has passed.", Toast.LENGTH_LONG).show();
             return false;
         }
-
     }
 
+    //this method will check if the car details are set, if the details are not set then the user cant submit a ride
     private boolean CarDetailsSet(){
         if(carMake != "" && carPrice != "" && carReg != ""  && carSeats != 0){
             return true;
@@ -272,6 +283,7 @@ public class OfferRideActivity extends AppCompatActivity{
         }
     }
 
+    //need to check if the date is today then dont need to check if date is future instead need to check if time is future
     private boolean IsDateToday(String date){
         Date calTime = Calendar.getInstance().getTime();
 
@@ -287,6 +299,7 @@ public class OfferRideActivity extends AppCompatActivity{
         int currMonth = Integer.parseInt(currDate[1]);
         int currDay = Integer.parseInt(currDate[0]);
 
+        //checking if the date is current day
         if(userYear == currYear){
             if(userMonth == currMonth){
                 if(userDay == currDay){
@@ -303,6 +316,7 @@ public class OfferRideActivity extends AppCompatActivity{
 
     }
 
+    //need to check if the time is in the future same way checking the date
     private boolean IsTimeFuture(String t) {
         int currHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         int currMin = Calendar.getInstance().get(Calendar.MINUTE);
@@ -325,6 +339,7 @@ public class OfferRideActivity extends AppCompatActivity{
         }
     }
 
+    //check if the user already has a dride or pride if they do then cant submit a new ride
     private boolean UserHasRide(){
         if(p == null && d == null){
             return false;
@@ -338,6 +353,7 @@ public class OfferRideActivity extends AppCompatActivity{
         return false;
     }
 
+    //before submitting the ride the data submitted needs to be validated
     private boolean IsDataCorrect(String d, String t, String dest){
         if(d == "" || d.isEmpty() || !IsDateFuture(d)){
             return false;
@@ -356,10 +372,12 @@ public class OfferRideActivity extends AppCompatActivity{
         return true;
     }
 
+    //get the user details from the db and set into member variables
     private void GetUserDetails(){
         String uid = currUser.getUid();
         offeredBy = uid;
 
+        //using firebase firestore to get the details from the server
         DocumentReference userReference = dataStore.collection("users").document(uid);
         userReference.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -379,6 +397,7 @@ public class OfferRideActivity extends AppCompatActivity{
         });
     }
 
+    //store the data into a map then send to the server
     private void StoreData(String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap, String pName){
         Map<String, Object> rideMap = new HashMap<>();
         rideMap.put("country", c);
@@ -397,6 +416,8 @@ public class OfferRideActivity extends AppCompatActivity{
         rideMap.put("completed", false);
         rideMap.put("ride-price", rprice);
 
+        //send the map to the server
+        //ride added to the db
         dataStore.collection("OfferedRides")
                 .add(rideMap)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {

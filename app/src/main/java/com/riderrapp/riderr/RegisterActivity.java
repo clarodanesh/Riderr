@@ -26,8 +26,8 @@ import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
+    //member variables for the registeractivity class
     private static final String TAG = "RegisterActivity";
-
     private FirebaseAuth authInstance;
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -37,7 +37,9 @@ public class RegisterActivity extends AppCompatActivity {
         super.onCreate(instanceState);
         setContentView(R.layout.activity_register);
 
+        //set the background color for the register activity
         getWindow().getDecorView().setBackgroundColor(getColor(R.color.colorPrimaryDark));
+        //if the device sdk is >= 21 then the nav bar color can be changed
         if(Build.VERSION.SDK_INT >= 21) {
             getWindow().setNavigationBarColor(getColor(R.color.colorPrimaryDark));
         }
@@ -47,6 +49,7 @@ public class RegisterActivity extends AppCompatActivity {
         final EditText passwordEdit =  (EditText) findViewById(R.id.passwordTextBoxRegister);
         final Button registerBtn = (Button) findViewById(R.id.RegisterBtnRegister);
 
+        //set listener for the register button
         registerBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 String email = (String) emailEdit.getText().toString();
@@ -55,10 +58,12 @@ public class RegisterActivity extends AppCompatActivity {
                 email = email.replace(" ", "");
                 password = password.replace(" ", "");
 
+                //after filtering what the user typed then send for register
                 register(email, password);
             }
         });
 
+        //create a login intent for people who already have an account and open that intent and close this one
         final Intent loginIntent = new Intent(this, LoginActivity.class);
         final Button loginRegisterBtn = (Button) findViewById(R.id.loginBtnRegister);
         loginRegisterBtn.setOnClickListener(new View.OnClickListener() {
@@ -81,9 +86,13 @@ public class RegisterActivity extends AppCompatActivity {
         return emailToCheck.matches(regularExpression);
     }
 
+    //this method will register the user using a firebase method
     public void register(final String e, final String p){
+        //check if the email contains .ac.uk and if the email is a valid email
         if(e.contains(".ac.uk") && IsEmailValid(e)) {
+            //if the password length is greater than 7 chars then allow register
             if(p.length() > 7) {
+                //register the user
                 authInstance.createUserWithEmailAndPassword(e, p)
                         .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                             @Override
@@ -107,6 +116,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    //if the user is null then dont send verification to the users email
     private void CheckIfUserNull(FirebaseUser u) {
         if (u != null) {
             u.sendEmailVerification()
@@ -123,6 +133,7 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
+    //try loggin the user in, need to do this so that the login activity can be opened
     private void TryLogin(String email, String password){
         authInstance.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -138,10 +149,12 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    //when registering create a map that will add the user details to the db
     private void CreateUser(){
         String uid = currUser.getUid();
         Map<String, Object> userMap = new HashMap<>();
 
+        //add the user details to the userMap
         userMap.put("car-make", "");
         userMap.put("firstname", "firstname");
         userMap.put("lastname", "lastname");
@@ -157,6 +170,7 @@ public class RegisterActivity extends AppCompatActivity {
         userMap.put("amountOfRatings", 0);
         userMap.put("ride-price", null);
 
+        //set the details into the database
         dataStore.collection("users").document(uid)
                 .set(userMap)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -173,6 +187,7 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    //Open the login activity  by signing out after the suer had been signed in, as they need to verify
     private void AttemptLoginOpen(FirebaseUser u){
         if (u != null) {
             FirebaseAuth.getInstance().signOut();

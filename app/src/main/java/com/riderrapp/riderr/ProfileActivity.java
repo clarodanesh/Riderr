@@ -26,8 +26,8 @@ import android.widget.Toast;
 
 public class ProfileActivity extends AppCompatActivity {
 
+    //member variables for the profile activity class
     private static final String TAG = "ProfileActivity";
-
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -35,12 +35,14 @@ public class ProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle instanceState) {
         super.onCreate(instanceState);
         setContentView(R.layout.activity_profile);
+        //need to set a back button into the bar to go back to parent activity
         ActionBar topBar = getSupportActionBar();
         topBar.setDisplayHomeAsUpEnabled(true);
 
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
         final Intent editProfileIntent = new Intent(this, EditProfileActivity.class);
 
+        //when the user click edit profile button open the edit profile intent
         editProfileBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 startActivity(editProfileIntent);
@@ -48,27 +50,32 @@ public class ProfileActivity extends AppCompatActivity {
         });
     }
 
+    //when the activity starts need to get the user
     @Override
     public void onStart() {
         super.onStart();
         GetUser();
     }
 
+    //this method will check if the current user is null and then try to get the user and set profile details
     private void GetUser(){
         if (currUser != null) {
-            updateUI(currUser);
+            Get(currUser);
         } else {
-            updateUI(null);
+            Get(null);
         }
     }
 
-    private void updateUI(FirebaseUser u) {
+    //this method will set the users details into the textviews in the layout
+    private void Get(FirebaseUser u) {
         final Button editProfileBtn = (Button) findViewById(R.id.EditProfileBtn);
 
+        //if the user is not null then the details from the db need to be put into the textviews
         if (u != null) {
             System.out.println("user isnt null");
             boolean emailVerified = u.isEmailVerified();
 
+            //check if the user email has been verified using the link they were sent to the email
             if(emailVerified) {
                 String uid = currUser.getUid();
                 editProfileBtn.setEnabled(true);
@@ -133,6 +140,7 @@ public class ProfileActivity extends AppCompatActivity {
                 });
             }
             else{
+                //if the user is not verified then need to tell them to verify
                 editProfileBtn.setEnabled(false);
                 Toast.makeText(ProfileActivity.this, "You need to VERIFY your email before you can make changes to your profile.", Toast.LENGTH_SHORT).show();
             }
@@ -141,7 +149,4 @@ public class ProfileActivity extends AppCompatActivity {
             editProfileBtn.setEnabled(false);
         }
     }
-
-
-
 }
