@@ -160,6 +160,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
+    //with really really slow internet connections there is a weird bug that
+    //fails user registration but still creates the user
+    //so need to check if the user is added to auth provider but not added to db then
+    //add to the db on login
+    //they can login since the user was created and added to auth provider, just no added to db
+    //because of this bug
     private void CreateUser(){
         String uid = currUser.getUid();
         Map<String, Object> userMap = new HashMap<>();
