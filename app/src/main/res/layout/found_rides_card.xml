@@ -2,6 +2,7 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rideCard"
     android:layout_width="match_parent"
     android:layout_height="300dp"
@@ -26,40 +27,49 @@
             android:textSize="20sp"
             card_view:layout_constraintBottom_toTopOf="@+id/date"
             card_view:layout_constraintEnd_toEndOf="parent"
-            card_view:layout_constraintHorizontal_bias="0.0"
+            card_view:layout_constraintHorizontal_bias="0.5"
             card_view:layout_constraintStart_toStartOf="parent"
-            card_view:layout_constraintTop_toTopOf="parent"
-            card_view:layout_constraintVertical_bias="0.313" />
+            card_view:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginBottom="36dp"
             android:textSize="20sp"
             card_view:layout_constraintBottom_toTopOf="@+id/time"
-            card_view:layout_constraintStart_toStartOf="parent" />
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/place" />
 
         <TextView
             android:id="@+id/time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginBottom="28dp"
             android:textSize="20sp"
             card_view:layout_constraintBottom_toTopOf="@+id/price"
-            card_view:layout_constraintStart_toStartOf="parent" />
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/date" />
 
         <TextView
             android:id="@+id/price"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
-            android:layout_marginBottom="28dp"
+            android:textSize="20sp"
+            card_view:layout_constraintBottom_toTopOf="@+id/drating"
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/time" />
+
+        <TextView
+            android:id="@+id/drating"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
             android:textSize="20sp"
             card_view:layout_constraintBottom_toTopOf="@+id/joinRideBtn"
-            card_view:layout_constraintStart_toStartOf="parent" />
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/price" />
 
         <Button
             android:id="@+id/joinRideBtn"
@@ -70,6 +80,8 @@
             android:textColor="@color/californiaGold"
             card_view:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toEndOf="parent"
-            card_view:layout_constraintStart_toStartOf="parent" />
+            card_view:layout_constraintHorizontal_bias="0.5"
+            card_view:layout_constraintStart_toStartOf="parent"
+            card_view:layout_constraintTop_toBottomOf="@+id/drating" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>

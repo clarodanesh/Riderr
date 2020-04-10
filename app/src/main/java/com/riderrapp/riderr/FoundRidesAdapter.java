@@ -25,6 +25,8 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRidesViewHolder>{
@@ -67,7 +69,8 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
         vh.place.setText("Place: " + data.place);
         vh.date.setText("Date: " + data.date);
         vh.time.setText("Time: " + data.time);
-        vh.price.setText("Price: " + data.price);
+        vh.price.setText("Price: £" + data.price);
+        vh.drating.setText("Driver Rating: " + data.drating + "/5");
 
         cviewButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -87,7 +90,7 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
 
     //I need to assign the variables to the corresponding views made in xml
     class FoundRidesViewHolder extends RecyclerView.ViewHolder {
-        TextView place, date, time, price;
+        TextView place, date, time, price, drating;
         CardView cv;
         Button b;
         LinearLayout parent;
@@ -101,6 +104,7 @@ class FoundRidesAdapter extends RecyclerView.Adapter<FoundRidesAdapter.FoundRide
             date = passedView.findViewById(R.id.date);
             time = passedView.findViewById(R.id.time);
             price = passedView.findViewById(R.id.price);
+            drating = passedView.findViewById(R.id.drating);
         }
     }
 }

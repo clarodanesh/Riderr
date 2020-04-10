@@ -9,13 +9,15 @@ public class rideData {
     String offeredBy;
     String rideId;
     String price;
+    String drating;
 
-    public rideData(String place, String date, String time, String offeredBy, String rideId, String price) {
+    public rideData(String place, String date, String time, String offeredBy, String rideId, String price, String drating) {
         this.place = place;
         this.date = date;
         this.time = time;
         this.offeredBy = offeredBy;
         this.rideId = rideId;
         this.price = price;
+        this.drating = drating;
     }
 }

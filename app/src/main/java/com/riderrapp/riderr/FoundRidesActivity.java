@@ -140,7 +140,7 @@ public class FoundRidesActivity extends AppCompatActivity {
                             //will build the rideDataList using the data returned in the filtered documents
                             for (QueryDocumentSnapshot ridesDocument : returnedTask.getResult()) {
                                 if(ridesDocument.getLong("vehicleCapacity").intValue() > 0 && ridesDocument.getBoolean("completed") == false) {
-                                    rData = new rideData(ridesDocument.get("place").toString(), ridesDocument.get("date").toString(), ridesDocument.get("time").toString(), ridesDocument.get("offeredBy").toString(), ridesDocument.getId(), ridesDocument.getString("ride-price"));
+                                    rData = new rideData(ridesDocument.get("place").toString(), ridesDocument.get("date").toString(), ridesDocument.get("time").toString(), ridesDocument.get("offeredBy").toString(), ridesDocument.getId(), ridesDocument.getString("ride-price"), ridesDocument.get("ratingToShow").toString());
                                     rideDataList.add(rData);
                                 }else{
                                     Log.d(TAG, "Ride not added due to vcap");

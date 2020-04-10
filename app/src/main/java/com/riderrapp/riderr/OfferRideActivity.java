@@ -60,7 +60,7 @@ public class OfferRideActivity extends AppCompatActivity{
     private int vehicleCapacity;
     private String rprice;
     private String p, d, carMake, carReg, carPrice, fname, lname;
-    private long carSeats;
+    private long carSeats, drating;
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
 
@@ -92,6 +92,7 @@ public class OfferRideActivity extends AppCompatActivity{
                         carPrice = userDoc.getString("ride-price");
                         fname = userDoc.getString("firstname");
                         lname = userDoc.getString("lastname");
+                        drating = userDoc.getLong("rating");
                     } else {
                         Log.d(TAG, "Cant find the user");
                     }
@@ -107,7 +108,7 @@ public class OfferRideActivity extends AppCompatActivity{
             public void onClick(View v) {
                 //send the data for the ride from here
                 if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide() && CarDetailsSet() && IsNameSet()){
-                    StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
+                    StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName, drating);
                     Toast.makeText(OfferRideActivity.this, "Your ride is now active", Toast.LENGTH_LONG).show();
                     finish();
                 }
@@ -415,8 +416,16 @@ public class OfferRideActivity extends AppCompatActivity{
         });
     }
 
+    private long GetRating(long r){
+        if(r == -1){
+            return 0;
+        }else{
+            return r;
+        }
+    }
+
     //store the data into a map then send to the server
-    private void StoreData(String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap, String pName){
+    private void StoreData(String c, double lng, double lt, String dt, String stmp, String dst, String off, String pl, String rg, String t, int vcap, String pName, long dr){
         Map<String, Object> rideMap = new HashMap<>();
         rideMap.put("country", c);
         rideMap.put("date", dt);
@@ -433,6 +442,7 @@ public class OfferRideActivity extends AppCompatActivity{
         rideMap.put("passengers", Arrays.asList());
         rideMap.put("completed", false);
         rideMap.put("ride-price", rprice);
+        rideMap.put("ratingToShow", GetRating(dr));
 
         //send the map to the server
         //ride added to the db
