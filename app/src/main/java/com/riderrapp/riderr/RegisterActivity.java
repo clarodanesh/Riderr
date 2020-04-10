@@ -140,18 +140,19 @@ public class RegisterActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> returnedTask) {
                         if (returnedTask.isSuccessful()) {
-                            CreateUser();
-                            AttemptLoginOpen(currUser);
+                            FirebaseUser user = authInstance.getCurrentUser();
+                            CreateUser(user);
+                            AttemptLoginOpen(user);
                         } else {
-                            System.out.println("Couldnt login");
+                            Toast.makeText(RegisterActivity.this, "Registration Failed.", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
     }
 
     //when registering create a map that will add the user details to the db
-    private void CreateUser(){
-        String uid = currUser.getUid();
+    private void CreateUser(FirebaseUser u){
+        String uid = u.getUid();
         Map<String, Object> userMap = new HashMap<>();
 
         //add the user details to the userMap
@@ -160,8 +161,8 @@ public class RegisterActivity extends AppCompatActivity {
         userMap.put("lastname", "lastname");
         userMap.put("registration-no", "");
         userMap.put("seats-no", 0);
-        userMap.put("user-email", currUser.getEmail());
-        userMap.put("user-id", currUser.getUid());
+        userMap.put("user-email", u.getEmail());
+        userMap.put("user-id", u.getUid());
         userMap.put("p-ride", null);
         userMap.put("d-ride", null);
         userMap.put("latitude", null);
@@ -191,7 +192,7 @@ public class RegisterActivity extends AppCompatActivity {
     private void AttemptLoginOpen(FirebaseUser u){
         if (u != null) {
             FirebaseAuth.getInstance().signOut();
-            final Intent loginIntent = new Intent(this, LoginActivity.class);
+            final Intent loginIntent = new Intent(RegisterActivity.this, LoginActivity.class);
             startActivity(loginIntent);
             finish();
         } else {

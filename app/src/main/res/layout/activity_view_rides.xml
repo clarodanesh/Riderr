@@ -12,120 +12,100 @@
         android:id="@+id/titleText"
         android:layout_width="match_parent"
         android:layout_height="46dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
         android:gravity="center"
         android:text="Your Ride"
         android:textSize="25sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@+id/driverText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:textStyle="bold"/>
+        tools:layout_editor_absoluteX="8dp" />
 
     <TextView
         android:id="@+id/driverText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:text="Driver: "
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/dateText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/titleText"
+        tools:layout_editor_absoluteX="8dp" />
 
     <TextView
         android:id="@+id/dateText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="12dp"
         android:text="Date: "
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/timeText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/driverText"
+        tools:layout_editor_absoluteX="8dp" />
 
     <TextView
         android:id="@+id/timeText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:text="Time: "
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/destText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/dateText"
+        tools:layout_editor_absoluteX="8dp" />
 
 
     <TextView
         android:id="@+id/destText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:text="Destination: "
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/etaText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/timeText"
+        tools:layout_editor_absoluteX="8dp" />
 
     <TextView
         android:id="@+id/etaText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
         android:text="Estimated Journey Time: "
         android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/ejdText"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/destText"
+        tools:layout_editor_absoluteX="8dp" />
 
     <TextView
         android:id="@+id/ejdText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="32dp"
         android:text="Estimated Journey Distance: "
         android:textSize="16sp"
+        app:layout_constraintBottom_toTopOf="@+id/carText"
+        app:layout_constraintTop_toBottomOf="@+id/etaText"
+        tools:layout_editor_absoluteX="8dp" />
+
+    <TextView
+        android:id="@+id/carText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Car Details: "
+        android:textSize="16sp"
         app:layout_constraintBottom_toTopOf="@+id/mapCardView"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/ejdText"
+        tools:layout_editor_absoluteX="-27dp" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/mapCardView"
         android:layout_width="match_parent"
-        android:layout_height="450dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:elevation="20dp"
         app:cardBackgroundColor="@color/metallicGold"
         app:cardCornerRadius="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/carText">
 
         <com.mapbox.mapboxsdk.maps.MapView
             android:id="@+id/viewRidesMap"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="390dp"
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
             android:layout_marginEnd="0dp"
@@ -168,8 +148,8 @@
             android:layout_marginBottom="30dp"
             android:backgroundTint="@color/metallicGold"
             android:text="Cancel Ride"
-            android:visibility="gone"
             android:textColor="@color/colorPrimary"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/searchButton"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"

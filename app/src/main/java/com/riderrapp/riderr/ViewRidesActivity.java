@@ -135,6 +135,7 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
     //set the text in the ride details text views
     private void SetTextViewText(String d, String dt, String t, String dest){
         final TextView driverLabel = (TextView)findViewById(R.id.driverText);
+        final TextView carLabel = (TextView)findViewById(R.id.carText);
         TextView dateLabel = (TextView)findViewById(R.id.dateText);
         TextView timeLabel = (TextView)findViewById(R.id.timeText);
         TextView destinationLabel = (TextView)findViewById(R.id.destText);
@@ -147,7 +148,14 @@ public class ViewRidesActivity extends AppCompatActivity implements OnMapReadyCa
                 if (returnedTask.isSuccessful()) {
                     DocumentSnapshot userDoc = returnedTask.getResult();
                     if (userDoc.exists()) {
-                        driverLabel.setText("Driver: " + userDoc.getString("firstname") + " " + userDoc.getString("lastname"));
+                        Long ratingToShow;
+                        if(userDoc.getLong("rating") == -1){
+                            ratingToShow = 0L;
+                        }else{
+                            ratingToShow = userDoc.getLong("rating");
+                        }
+                        driverLabel.setText("Driver: " + userDoc.getString("firstname") + " " + userDoc.getString("lastname") + " -- Rating: " + ratingToShow.toString() + "/5");
+                        carLabel.setText("Car Details: " + userDoc.getString("car-make") + " -- " + userDoc.getString("registration-no"));
                     } else {
                         Log.d(TAG, "couldnt find user doc");
                     }

@@ -46,7 +46,7 @@ public class SearchActivity extends AppCompatActivity{
     Button pickDateBtn, pickTimeBtn;
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
-    private String fullDate, fullTime, destination, lng, lat;
+    protected String fullDate, fullTime, destination, lng, lat, fname, lname;
     private String p, d;
 
     //Mapbox places plugin implementation
@@ -78,6 +78,8 @@ public class SearchActivity extends AppCompatActivity{
                     if (userDoc.exists()) {
                         p = userDoc.getString("p-ride");
                         d = userDoc.getString("d-ride");
+                        fname = userDoc.getString("firstname");
+                        lname = userDoc.getString("lastname");
                     } else {
                         Log.d(TAG, "couldnt get the users doc");
                     }
@@ -93,7 +95,7 @@ public class SearchActivity extends AppCompatActivity{
             public void onClick(View v) {
                 EditText searchRideTxtBox = (EditText)findViewById(R.id.searchTxtBox);
 
-                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide()) {
+                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide() && IsNameSet()) {
                     if(IsLocationSet(lng, lat)) {
                         foundRidesIntent.putExtra(FoundRidesActivity.SEARCH_PLACE, searchRideTxtBox.getText().toString());
                         foundRidesIntent.putExtra(FoundRidesActivity.SEARCH_DATE, fullDate);
@@ -104,7 +106,7 @@ public class SearchActivity extends AppCompatActivity{
                     }
                 }
                 else{
-                    Toast.makeText(SearchActivity.this, "Fill the form properly before submitting it.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(SearchActivity.this, "Please meet the requirement to search for rides.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -163,6 +165,19 @@ public class SearchActivity extends AppCompatActivity{
         BuildDestSearch();
     }
 
+    private boolean IsNameSet(){
+        if(!fname.equals("firstname") && !lname.equals("lastname")){
+            return true;
+        }else{
+            Toast.makeText(SearchActivity.this, "You need to fill your name in on your profile.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    private void CallErrorToast(String message){
+        Toast.makeText(SearchActivity.this, message, Toast.LENGTH_LONG).show();
+    }
+
     private boolean UserHasRide(){
         if(p == null && d == null){
             return false;
@@ -193,8 +208,8 @@ public class SearchActivity extends AppCompatActivity{
         int currDay = Integer.parseInt(currDate[0]);
 
         if(userYear >= currYear){
-            if(userMonth >= currMonth){
-                if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay)){
+            if(userMonth >= currMonth || (userYear > currYear && userMonth <= currMonth)){
+                if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay) || (userYear > currYear && userMonth <= currMonth && userDay <= currDay)){
                     return true;
                 }else{
                     Toast.makeText(SearchActivity.this, "The date you selected has passed.", Toast.LENGTH_LONG).show();
@@ -327,12 +342,15 @@ public class SearchActivity extends AppCompatActivity{
 
     private boolean IsDataCorrect(String d, String t, String dest){
         if(d == "" || d.isEmpty() || !IsDateFuture(d)){
+            CallErrorToast("Date cant be empty.");
             return false;
         }
         if(t == "" || t.isEmpty()){
+            CallErrorToast("Time cant be empty.");
             return false;
         }
         if(dest == "" || dest.isEmpty()){
+            CallErrorToast("Destination cant be empty");
             return false;
         }
         if(IsDateToday(d)){

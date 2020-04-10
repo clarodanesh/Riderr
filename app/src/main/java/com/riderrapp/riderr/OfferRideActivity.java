@@ -53,13 +53,13 @@ public class OfferRideActivity extends AppCompatActivity{
     Button pickDateBtn, pickTimeBtn;
     TextView dateText, timeText;
     private int theYear, theMonth, theDay, theHour, theMinute;
-    private String fullDate, fullTime, destination;
+    protected String fullDate, fullTime, destination;
     private static final int RC_AC = 1;
     private String country, dateTimeStamp, offeredBy, place, region, placeName;
     private double longitude, latitude;
     private int vehicleCapacity;
     private String rprice;
-    private String p, d, carMake, carReg, carPrice;
+    private String p, d, carMake, carReg, carPrice, fname, lname;
     private long carSeats;
     final FirebaseFirestore dataStore = FirebaseFirestore.getInstance();
     final FirebaseUser currUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -90,6 +90,8 @@ public class OfferRideActivity extends AppCompatActivity{
                         carReg = userDoc.getString("registration-no");
                         carSeats = userDoc.getLong("seats-no");
                         carPrice = userDoc.getString("ride-price");
+                        fname = userDoc.getString("firstname");
+                        lname = userDoc.getString("lastname");
                     } else {
                         Log.d(TAG, "Cant find the user");
                     }
@@ -104,13 +106,13 @@ public class OfferRideActivity extends AppCompatActivity{
         offerRideBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 //send the data for the ride from here
-                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide() && CarDetailsSet()){
+                if(IsDataCorrect(fullDate, fullTime, destination) && !UserHasRide() && CarDetailsSet() && IsNameSet()){
                     StoreData(country, longitude, latitude, fullDate, dateTimeStamp, destination, offeredBy, place, region, fullTime, vehicleCapacity, placeName);
                     Toast.makeText(OfferRideActivity.this, "Your ride is now active", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 else{
-                    Toast.makeText(OfferRideActivity.this, "Fill the form properly before trying to submit.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(OfferRideActivity.this, "Please meet the requirement to offer ride.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -256,8 +258,8 @@ public class OfferRideActivity extends AppCompatActivity{
 
         //checking the year then month then day if ever false then show a toast
         if(userYear >= currYear){
-            if(userMonth >= currMonth){
-                if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay)){
+            if(userMonth >= currMonth || (userYear > currYear && userMonth <= currMonth)){
+                if(userDay >= currDay || (userMonth > currMonth && userDay <= currDay) || (userYear > currYear && userMonth <= currMonth && userDay <= currDay)){
                     return true;
                 }else{
                     Toast.makeText(OfferRideActivity.this, "The date you selected has passed.", Toast.LENGTH_LONG).show();
@@ -278,7 +280,16 @@ public class OfferRideActivity extends AppCompatActivity{
         if(carMake != "" && carPrice != "" && carReg != ""  && carSeats != 0){
             return true;
         }else{
-            Toast.makeText(OfferRideActivity.this, "You need to fill in your car details to offer rides.", Toast.LENGTH_LONG).show();
+            Toast.makeText(OfferRideActivity.this, "You need to fill in your car details to offer rides. Make sure your full name is set too.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+    }
+
+    private boolean IsNameSet(){
+        if(!fname.equals("firstname") && !lname.equals("lastname")){
+            return true;
+        }else{
+            Toast.makeText(OfferRideActivity.this, "You need to fill your name in on your profile.", Toast.LENGTH_LONG).show();
             return false;
         }
     }
@@ -353,15 +364,22 @@ public class OfferRideActivity extends AppCompatActivity{
         return false;
     }
 
+    private void CallErrorToast(String message){
+        Toast.makeText(OfferRideActivity.this, message, Toast.LENGTH_LONG).show();
+    }
+
     //before submitting the ride the data submitted needs to be validated
     private boolean IsDataCorrect(String d, String t, String dest){
         if(d == "" || d.isEmpty() || !IsDateFuture(d)){
+            CallErrorToast("Date has to be filled.");
             return false;
         }
         if(t == "" || t.isEmpty()){
+            CallErrorToast("Time cant be empty.");
             return false;
         }
         if(dest == "" || dest.isEmpty()){
+            CallErrorToast("Destination cant be empty.");
             return false;
         }
         if(IsDateToday(d)){

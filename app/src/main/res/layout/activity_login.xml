@@ -13,7 +13,9 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="152dp"
         android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/emailTxtBoxLogin"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_riderrlonglogooutline" />
@@ -32,8 +34,9 @@
         android:textColor="#FDB515"
         android:textColorHint="#FDB515"
         android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/passwordTextBoxLogin"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.488"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/riderrLogoImage" />
 
@@ -52,9 +55,9 @@
         android:textColor="#FDB515"
         android:textColorHint="#FDB515"
         android:textSize="14sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/loginBtn"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.488"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/emailTxtBoxLogin"
         app:layout_constraintVertical_bias="0.0" />
@@ -69,8 +72,9 @@
         android:backgroundTint="@color/californiaGold"
         android:text="LOGIN"
         android:textColor="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/registerMessage"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.477"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/passwordTextBoxLogin" />
 
@@ -86,6 +90,7 @@
         android:textColor="#fdb515"
         app:layout_constraintBottom_toTopOf="@+id/registerBtnLogin"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/loginBtn"
         app:layout_constraintVertical_bias="1.0" />
@@ -102,5 +107,7 @@
         android:textColor="@color/californiaGold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/registerMessage" />
 </androidx.constraintlayout.widget.ConstraintLayout>
