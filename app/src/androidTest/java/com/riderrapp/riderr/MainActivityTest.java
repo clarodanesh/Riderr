@@ -78,6 +78,15 @@ public class MainActivityTest {
 
     //test the logout link on the nav drawer
     @Test
+    public void TestNavDrawerHelp() {
+        onView(withId(R.id.mainActivityNavDrawerLayout)).perform(DrawerActions.open());
+
+        onView(withId(R.id.navDrawerView))
+                .perform(NavigationViewActions.navigateTo(R.id.nav_help));
+    }
+
+    //test the logout link on the nav drawer
+    @Test
     public void TestNavDrawerLogout() {
         onView(withId(R.id.mainActivityNavDrawerLayout)).perform(DrawerActions.open());
 
