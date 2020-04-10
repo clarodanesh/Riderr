@@ -2,6 +2,7 @@ package com.riderrapp.riderr;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.content.DialogInterface;
 import android.location.Location;
@@ -302,6 +303,8 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
         finalDialog.setButton(AlertDialog.BUTTON_NEGATIVE,"FINISH RIDE",new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dInterface, int num) {
+                final Intent mainIntent = new Intent(NavigationActivity.this, MainActivity.class);
+                startActivity(mainIntent);
                 finish();
             }
         });
