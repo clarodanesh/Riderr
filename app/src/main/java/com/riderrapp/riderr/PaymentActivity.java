@@ -211,6 +211,8 @@ public class PaymentActivity extends AppCompatActivity {
                 });
 
         Toast.makeText(PaymentActivity.this, "Awesome, you successfully joined the ride.", Toast.LENGTH_LONG).show();
+        final Intent mainIntent = new Intent(this, MainActivity.class);
+        startActivity(mainIntent);
         finish();
     }
 

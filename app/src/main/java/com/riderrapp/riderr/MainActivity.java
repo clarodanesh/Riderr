@@ -147,6 +147,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     } else {
                                         Log.d(TAG, "No ride found");
+                                        CreateUser();
                                     }
                                 } else {
                                     Log.d(TAG, "Exception: ", returnedTask.getException());
@@ -157,6 +158,43 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         });
+    }
+
+    private void CreateUser(){
+        String uid = currUser.getUid();
+        Map<String, Object> userMap = new HashMap<>();
+
+        //add the user details to the userMap
+        userMap.put("car-make", "");
+        userMap.put("firstname", "firstname");
+        userMap.put("lastname", "lastname");
+        userMap.put("registration-no", "");
+        userMap.put("seats-no", 0);
+        userMap.put("user-email", currUser.getEmail());
+        userMap.put("user-id", currUser.getUid());
+        userMap.put("p-ride", null);
+        userMap.put("d-ride", null);
+        userMap.put("latitude", null);
+        userMap.put("longitude", null);
+        userMap.put("rating", -1);
+        userMap.put("amountOfRatings", 0);
+        userMap.put("ride-price", null);
+
+        //set the details into the database
+        dataStore.collection("users").document(uid)
+                .set(userMap)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void v) {
+                        Log.d(TAG, "User was added to the db");
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Exception: ", e);
+                    }
+                });
     }
 
     //Nav drawer has different options user can click so I need to check which option is selected
@@ -312,6 +350,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     } else {
                                         Log.d(TAG, "Ride doesnt exist :: onResum check");
+                                        CreateUser();
                                     }
                                 } else {
                                     Log.d(TAG, "Exception ", returnedTask.getException());
