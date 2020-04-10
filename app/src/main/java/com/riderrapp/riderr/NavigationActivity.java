@@ -292,6 +292,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             }
         });
 
+        arrivalDialog.setCancelable(false);
         arrivalDialog.show();
     }
 
@@ -309,6 +310,7 @@ public class NavigationActivity extends AppCompatActivity implements OnNavigatio
             }
         });
 
+        finalDialog.setCancelable(false);
         finalDialog.show();
     }
 
