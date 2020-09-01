@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".EditProfileActivity">
+
+    <Button
+        android:id="@+id/updateLocationBtn"
+        android:layout_width="351dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:backgroundTint="@color/californiaGold"
+        android:text="UPDATE LOCATION"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/YourCarCaption"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editFirstname" />
+
+    <TextView
+        android:id="@+id/AboutYouCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="28dp"
+        android:text="About You"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toTopOf="@+id/NameCaption"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
+
+    <TextView
+        android:id="@+id/NameCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="38dp"
+        android:layout_marginTop="16dp"
+        android:text="Name"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/editFirstname"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/AboutYouCaption" />
+
+    <EditText
+        android:id="@+id/editFirstname"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="First Name"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/updateLocationBtn"
+        app:layout_constraintEnd_toStartOf="@+id/editLastname"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/NameCaption" />
+
+    <EditText
+        android:id="@+id/editLastname"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Last Name"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/updateLocationBtn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toEndOf="@+id/editFirstname"
+        app:layout_constraintTop_toBottomOf="@+id/NameCaption"
+        app:layout_constraintVertical_bias="0.19999999" />
+
+    <TextView
+        android:id="@+id/YourCarCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="24dp"
+        android:text="Your Car"
+        android:textSize="25sp"
+        app:layout_constraintBottom_toTopOf="@+id/CarMakeCaption"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/updateLocationBtn" />
+
+    <TextView
+        android:id="@+id/CarMakeCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Car Make"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/editCarMake"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/YourCarCaption" />
+
+
+    <TextView
+        android:id="@+id/CarRegCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Car Registration"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/editCarReg"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editCarMake" />
+
+
+    <EditText
+        android:id="@+id/editCarReg"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="32dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Make"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/CarSeatsCaption"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/CarRegCaption" />
+
+    <TextView
+        android:id="@+id/CarSeatsCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Amount of Seats"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/editCarSeats"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editCarReg" />
+
+    <EditText
+        android:id="@+id/editCarSeats"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="32dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Seats No"
+        android:inputType="number"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/EditPriceCaption"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/CarSeatsCaption" />
+
+    <TextView
+        android:id="@+id/EditPriceCaption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginTop="16dp"
+        android:text="Price"
+        android:textSize="15sp"
+        app:layout_constraintBottom_toTopOf="@+id/editPrice"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editCarSeats" />
+
+    <EditText
+        android:id="@+id/editPrice"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="32dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint=""
+        android:inputType="numberDecimal"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/SaveProfileChangesBtn"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/EditPriceCaption" />
+
+
+    <Button
+        android:id="@+id/SaveProfileChangesBtn"
+        android:layout_width="351dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/californiaGold"
+        android:text="SAVE CHANGES"
+        android:textColor="@color/colorPrimary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editPrice" />
+
+    <EditText
+        android:id="@+id/editCarMake"
+        android:layout_width="146dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="32dp"
+        android:backgroundTint="#FDB515"
+        android:ems="10"
+        android:hint="Car Make"
+        android:inputType="textPersonName"
+        android:textColor="#FDB515"
+        android:textColorHint="#FDB515"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toTopOf="@+id/CarRegCaption"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/CarMakeCaption" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

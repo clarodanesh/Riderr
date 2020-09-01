@@ -1,37 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:showIn="navigation_view">
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_home"
+            android:id="@+id/nav_far"
             android:icon="@drawable/ic_search_black_24dp"
-            android:title="@string/menu_home" />
+            android:title="@string/menu_far" />
         <item
-            android:id="@+id/nav_gallery"
+            android:id="@+id/nav_oar"
             android:icon="@drawable/ic_add_circle_outline_black_24dp"
-            android:title="@string/menu_gallery" />
+            android:title="@string/menu_oar" />
         <item
-            android:id="@+id/nav_slideshow"
+            android:id="@+id/nav_vr"
             android:icon="@drawable/ic_view_carousel_black_24dp"
-            android:title="@string/menu_slideshow" />
+            android:title="@string/menu_vr" />
         <item
-            android:id="@+id/nav_tools"
+            android:id="@+id/nav_profile"
             android:icon="@drawable/ic_person_black_24dp"
-            android:title="@string/menu_tools" />
+            android:title="@string/menu_profile" />
     </group>
 
-    <item android:title="Communicate">
+    <item android:title="More">
         <menu>
             <item
-                android:id="@+id/nav_share"
-                android:icon="@drawable/ic_menu_share"
-                android:title="@string/menu_share" />
+                android:id="@+id/nav_help"
+                android:icon="@drawable/mapbox_info_icon_default"
+                android:title="Help" />
             <item
-                android:id="@+id/nav_send"
-                android:icon="@drawable/ic_menu_send"
-                android:title="@string/menu_send" />
+                android:id="@+id/nav_logout"
+                android:icon="@drawable/mapbox_ic_offline"
+                android:title="Logout" />
         </menu>
     </item>
 

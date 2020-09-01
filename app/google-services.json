@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "26833239022",
+    "firebase_url": "https://riderr-6a2b0.firebaseio.com",
+    "project_id": "riderr-6a2b0",
+    "storage_bucket": "riderr-6a2b0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26833239022:android:9a2e3809b4b16bc32d6cff",
+        "android_client_info": {
+          "package_name": "com.riderrapp.riderr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "26833239022-j61aokr35vn7cdq0as8895atktli2v2o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6JnK1j1WzREFol7vUUDKKRbATndInRD4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "26833239022-j61aokr35vn7cdq0as8895atktli2v2o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
