@@ -59,6 +59,7 @@ public class ProfileActivity extends AppCompatActivity {
 
     //this method will check if the current user is null and then try to get the user and set profile details
     private void GetUser(){
+	//testing vim from UBUNTU 20.04
         if (currUser != null) {
             Get(currUser);
         } else {
